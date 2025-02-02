@@ -1,106 +1,111 @@
-"use client"; // This tells Next.js that this component will run in the browser where we can use interactive features
+"use client"; // This tells Next.js that we want to use browser features like clicking buttons and showing popups
 
-// Importing the tools we need from React
-// useState: Helps us create variables that can change (like a light switch that can be on/off)
-// useEffect: Helps us run code at specific times (like when the page first loads)
+// Getting the tools we need from React
+// Think of useState like a box where we can put things and change them later
+// And useEffect is like setting an alarm to do something at specific times
 import { useState, useEffect } from "react";
 
-// Importing my custom modal components that I made for adding and editing items
-// These are popup windows that appear when we want to add or edit something
+// Getting my popup windows (modals) that I made for adding and editing items
+// These are like those forms that pop up when you click "edit profile" on social media
 import AddItemModal from "@/components/modals/AddItemModal";
 import EditItemModal from "@/components/modals/EditItemModal";
 
-// Getting my API functions that help talk to the backend (server)
-// This is like having a messenger that carries information back and forth
+// Getting my helper functions that talk to my database
+// Think of this like having a waiter that goes between the kitchen (database) and the customers (users)
 import { api } from "@/actions/api";
 
 import ExpiryAlert from "@/components/ExpiryAlert";
 import { formatDate } from "@/actions/dateFormatter";
 
-// This is my main component for the Home page
+// This is like the blueprint for my main page
 export default function Home() {
-  // Setting up my variables that can change (state variables)
-  // Think of these like containers that can hold different values
-  const [isModalOpen, setIsModalOpen] = useState(false); // Controls if the Add popup is showing
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Controls if the Edit popup is showing
-  const [items, setItems] = useState([]); // Holds my list of items, starts as empty array
-  const [loading, setLoading] = useState(true); // Tells us if we're still loading data
-  const [selectedItem, setSelectedItem] = useState(null); // Keeps track of which item we're editing
+  // Setting up my "boxes" (variables) that can change
+  // Imagine these like switches that can be turned on/off
+  const [isModalOpen, setIsModalOpen] = useState(false); // For showing/hiding the Add Item popup
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // For showing/hiding the Edit Item popup
+  const [items, setItems] = useState([]); // Like a shopping list that starts empty
+  const [loading, setLoading] = useState(true); // Like a "busy" sign while we're getting stuff
+  const [selectedItem, setSelectedItem] = useState(null); // Remember which item we're editing
 
-  // This runs when the page first loads
-  // It's like saying "hey, get my items as soon as the page opens"
+  // When the page first opens, get our items
+  // Like checking your inventory when you first open your store
   useEffect(() => {
     fetchItems();
-  }, []); // The empty [] means run this only once when the page loads
+  }, []); // The empty [] means "only do this when the page first loads"
 
-  // Function that gets my items from the server
+  // Function to get items from our database
+  // Like asking the warehouse what items we have
   const fetchItems = async () => {
     try {
-      const data = await api.getItem(); // Ask the server for items
-      setItems(data); // Save the items we got
+      const data = await api.getItem(); // Ask database for items
+      setItems(data); // Put items in our "box"
     } catch (error) {
-      console.error("Failed to fetch items:", error); // If something goes wrong, log the error
+      console.error("Failed to fetch items:", error); // If something goes wrong, write it down
     } finally {
-      setLoading(false); // Whether it worked or not, we're done loading
+      setLoading(false); // Turn off the "busy" sign
     }
   };
 
-  // Function that handles adding a new item
-  // This runs when we submit the Add Item form
+  // When someone adds a new item
+  // Like when a new product arrives at your store
   const handleAddItem = async (itemData) => {
     try {
-      await api.addItem(itemData); // Send the new item to the server
-      await fetchItems(); // Get the updated list of items
-      setIsModalOpen(false); // Close the Add popup
+      await api.addItem(itemData); // Tell database about new item
+      await fetchItems(); // Get fresh list of all items
+      setIsModalOpen(false); // Close the Add Item popup
     } catch (error) {
-      console.error("Failed to add item:", error); // Log any errors that happen
+      console.error("Failed to add item:", error); // Write down if something goes wrong
     }
   };
 
-  // Function that runs when we click the Edit button
+  // When someone clicks Edit button
+  // Like picking an item off the shelf to change its price tag
   const handleEditClick = (item) => {
     setSelectedItem(item); // Remember which item we're editing
     setIsEditModalOpen(true); // Show the Edit popup
   };
 
-  // Function that handles saving edited item changes
+  // When someone saves their edits
+  // Like updating the price tag on that item
   const handleEditSubmit = async (updatedData) => {
     try {
-      // Make sure we have an item selected to edit
+      // Make sure we actually picked an item to edit
       if (!selectedItem?._id) {
         console.error("No item selected for edit");
         return;
       }
 
-      // Log what we're about to update (helpful for debugging)
+      // Write down what we're changing (helps us find problems later)
       console.log("Updating item:", {
         id: selectedItem._id,
         currentData: selectedItem,
         newData: updatedData,
       });
 
-      // Check if we have all the required information
+      // Make sure we have all the important information
+      // Like checking if we have both price AND name when updating a product
       if (!updatedData.nama || !updatedData.kategori || !updatedData.satuan) {
         throw new Error("Missing required fields");
       }
 
-      await api.updateItem(selectedItem._id, updatedData); // Send updates to server
+      await api.updateItem(selectedItem._id, updatedData); // Tell database about changes
       await fetchItems(); // Get fresh list of items
       setIsEditModalOpen(false); // Close the Edit popup
-      setSelectedItem(null); // Clear the selected item
+      setSelectedItem(null); // Forget which item we were editing
     } catch (error) {
       console.error("Failed to update item:", error);
     }
   };
 
-  // Function that handles deleting an item
+  // When someone wants to delete an item
+  // Like removing a product you don't sell anymore
   const handleDelete = async (id) => {
-    // Show a confirmation popup before deleting
+    // Double check if they really want to delete
     if (window.confirm("Apakah Anda yakin ingin menghapus item ini?")) {
       try {
         console.log("Attempting to delete item with ID:", id);
-        await api.deleteItem(id); // Tell server to delete the item
-        await fetchItems(); // Get updated list without the deleted item
+        await api.deleteItem(id); // Tell database to remove the item
+        await fetchItems(); // Get fresh list without deleted item
       } catch (error) {
         console.error("Failed to delete item:", error);
         alert("Gagal menghapus item. Silakan coba lagi.");
@@ -108,28 +113,28 @@ export default function Home() {
     }
   };
 
-  // The actual HTML structure that shows up on the page
-
-  // Render the component
+  // The part that shows up on the screen
+  // Think of this like arranging shelves in your store
   return (
     <div className="container mx-auto px-4">
-      {/* Header section with a button to add new items */}
+      {/* The top part with title and Add button */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-gray-800">
           Daftar Inventori
         </h2>
         <button
-          onClick={() => setIsModalOpen(true)} // Open the Add Item modal
+          onClick={() => setIsModalOpen(true)} // Show Add Item popup when clicked
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           Tambah Item
         </button>
       </div>
 
-      {/* Table to display the list of items */}
+      {/* The table that shows all our items */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
+            {/* Table headers - like labels on store shelves */}
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -150,8 +155,12 @@ export default function Home() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
               </tr>
             </thead>
+            {/* Table body - where all our items are listed */}
             <tbody className="bg-white divide-y divide-gray-200">
-              {/* Conditional rendering based on loading state and items availability */}
+              {/* Show different things based on what's happening:
+                  - If loading: show "Loading..."
+                  - If no items: show "No items yet"
+                  - If has items: show all items in rows */}
               {loading ? (
                 <tr>
                   <td
@@ -172,7 +181,7 @@ export default function Home() {
                   </td>
                 </tr>
               ) : (
-                // Map through the items and render each row
+                // For each item in our list, make a row in the table
                 items.map((item) => (
                   <tr key={item._id}>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-800">
@@ -192,14 +201,13 @@ export default function Home() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="space-x-2">
-                        {/* Edit button */}
+                        {/* Buttons for each row */}
                         <button
                           onClick={() => handleEditClick(item)}
                           className="text-blue-600 hover:text-blue-800"
                         >
                           Edit
                         </button>
-                        {/* Delete button */}
                         <button
                           onClick={() => handleDelete(item._id)}
                           className="text-red-600 hover:text-red-800"
@@ -217,22 +225,23 @@ export default function Home() {
       </div>
       <ExpiryAlert items={items} />
 
-      {/* Add Item Modal */}
+      {/* Our popup windows (modals) */}
+      {/* Add Item popup */}
       <AddItemModal
-        isOpen={isModalOpen} // Controlled by isModalOpen state
-        onClose={() => setIsModalOpen(false)} // Close the modal
-        onSubmit={handleAddItem} // Handle form submission
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleAddItem}
       />
 
-      {/* Edit Item Modal */}
+      {/* Edit Item popup */}
       <EditItemModal
-        isOpen={isEditModalOpen} // Controlled by isEditModalOpen state
+        isOpen={isEditModalOpen}
         onClose={() => {
-          setIsEditModalOpen(false); // Close the modal
-          setSelectedItem(null); // Clear the selected item
+          setIsEditModalOpen(false);
+          setSelectedItem(null);
         }}
-        onSubmit={handleEditSubmit} // Handle form submission
-        item={selectedItem} // Pass the selected item to the modal
+        onSubmit={handleEditSubmit}
+        item={selectedItem}
       />
     </div>
   );
