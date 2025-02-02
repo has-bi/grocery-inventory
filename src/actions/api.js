@@ -84,17 +84,43 @@ const updateItem = async (id, itemData) => {
   }
 };
 
-// Function to delete an item from the API
 const deleteItem = async (id) => {
   try {
-    const response = await fetch(`${BASE_URL}/${id}`, {
-      method: "DELETE", // Send a DELETE request
+    if (!id) {
+      throw new Error("Item ID is required for deletion");
+    }
+
+    // Send array of IDs directly as the body
+    const payload = [id];
+
+    console.log("Deleting item with payload:", payload); // Debug log
+
+    const response = await fetch(BASE_URL, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload), // Send the array directly
     });
-    const data = await response.json(); // Parse the response as JSON
-    return data; // Return the response data
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Server response:", errorText);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      const data = await response.json();
+      return data;
+    } else {
+      const text = await response.text();
+      console.error("Received non-JSON response:", text);
+      throw new Error("Received non-JSON response from server");
+    }
   } catch (error) {
-    console.error("Error deleting item:", error); // Log any errors
-    throw error; // Re-throw the error to handle it in the calling function
+    console.error("Error deleting item:", error);
+    throw error;
   }
 };
 

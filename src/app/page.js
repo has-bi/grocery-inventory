@@ -72,12 +72,13 @@ export default function Home() {
   // Function to handle deleting an item
   const handleDelete = async (id) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus item ini?")) {
-      // Confirm deletion
       try {
-        await api.deleteItem(id); // Delete the item via the API
-        await fetchItems(); // Refresh the list of items
+        console.log("Attempting to delete item with ID:", id);
+        await api.deleteItem(id);
+        await fetchItems();
       } catch (error) {
-        console.error("Failed to delete item:", error); // Log any errors
+        console.error("Failed to delete item:", error);
+        alert("Gagal menghapus item. Silakan coba lagi.");
       }
     }
   };
@@ -111,10 +112,10 @@ export default function Home() {
                   Kategori
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Satuan
+                  Jumlah
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Jumlah
+                  Satuan
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tanggal Kadaluarsa
@@ -156,10 +157,10 @@ export default function Home() {
                       {item.kategori}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-800">
-                      {item.satuan}
+                      {item.jumlah}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-800">
-                      {item.jumlah}
+                      {item.satuan}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-800">
                       {item.tanggal_kadaluarsa || "-"}
