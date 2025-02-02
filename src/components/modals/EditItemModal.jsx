@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 
 export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
@@ -23,6 +25,8 @@ export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
     }
   }, [item]);
 
+  if (!isOpen) return null;
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
@@ -43,7 +47,7 @@ export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
             </button>
           </div>
 
-          <h3 className="text-lg font-semibold text-gray-900">Add New Item</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Edit Item</h3>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
@@ -113,7 +117,7 @@ export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={formData.jumlah}
                 onChange={(e) =>
-                  setFormData({ ...formData, jumlah: e.target.value })
+                  setFormData({ ...formData, jumlah: Number(e.target.value) })
                 }
                 required
               />
@@ -148,7 +152,7 @@ export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
                 type="submit"
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                Tambah
+                Simpan
               </button>
             </div>
           </form>
