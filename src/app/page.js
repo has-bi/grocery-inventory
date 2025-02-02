@@ -1,87 +1,114 @@
-"use client"; // Indicates that this is a Client Component in Next.js
+"use client"; // This tells Next.js that this component will run in the browser where we can use interactive features
 
-// Importing necessary hooks and components
-import { useState, useEffect } from "react"; // useState for state management, useEffect for side effects
-import AddItemModal from "@/components/modals/AddItemModal"; // Modal for adding items
-import EditItemModal from "@/components/modals/EditItemModal"; // Modal for editing items
-import { api } from "@/actions/api"; // API functions for CRUD operations
+// Importing the tools we need from React
+// useState: Helps us create variables that can change (like a light switch that can be on/off)
+// useEffect: Helps us run code at specific times (like when the page first loads)
+import { useState, useEffect } from "react";
 
-// Main component for the Home page
+// Importing my custom modal components that I made for adding and editing items
+// These are popup windows that appear when we want to add or edit something
+import AddItemModal from "@/components/modals/AddItemModal";
+import EditItemModal from "@/components/modals/EditItemModal";
+
+// Getting my API functions that help talk to the backend (server)
+// This is like having a messenger that carries information back and forth
+import { api } from "@/actions/api";
+
+import ExpiryAlert from "@/components/ExpiryAlert";
+import { formatDate } from "@/actions/dateFormatter";
+
+// This is my main component for the Home page
 export default function Home() {
-  // State variables
-  const [isModalOpen, setIsModalOpen] = useState(false); // Controls the visibility of the Add Item modal
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Controls the visibility of the Edit Item modal
-  const [items, setItems] = useState([]); // Stores the list of items
-  const [loading, setLoading] = useState(true); // Indicates if data is still being fetched
-  const [selectedItem, setSelectedItem] = useState(null); // Stores the item selected for editing
+  // Setting up my variables that can change (state variables)
+  // Think of these like containers that can hold different values
+  const [isModalOpen, setIsModalOpen] = useState(false); // Controls if the Add popup is showing
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Controls if the Edit popup is showing
+  const [items, setItems] = useState([]); // Holds my list of items, starts as empty array
+  const [loading, setLoading] = useState(true); // Tells us if we're still loading data
+  const [selectedItem, setSelectedItem] = useState(null); // Keeps track of which item we're editing
 
-  // useEffect hook to fetch items when the component mounts
+  // This runs when the page first loads
+  // It's like saying "hey, get my items as soon as the page opens"
   useEffect(() => {
     fetchItems();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []); // The empty [] means run this only once when the page loads
 
-  // Function to fetch items from the API
+  // Function that gets my items from the server
   const fetchItems = async () => {
     try {
-      const data = await api.getItem(); // Fetch items from the API
-      setItems(data); // Update the state with the fetched items
+      const data = await api.getItem(); // Ask the server for items
+      setItems(data); // Save the items we got
     } catch (error) {
-      console.error("Failed to fetch items:", error); // Log any errors
+      console.error("Failed to fetch items:", error); // If something goes wrong, log the error
     } finally {
-      setLoading(false); // Set loading to false after fetching (whether successful or not)
+      setLoading(false); // Whether it worked or not, we're done loading
     }
   };
 
-  // Function to handle adding a new item
+  // Function that handles adding a new item
+  // This runs when we submit the Add Item form
   const handleAddItem = async (itemData) => {
     try {
-      await api.addItem(itemData); // Add the new item via the API
-      await fetchItems(); // Refresh the list of items
-      setIsModalOpen(false); // Close the Add Item modal
+      await api.addItem(itemData); // Send the new item to the server
+      await fetchItems(); // Get the updated list of items
+      setIsModalOpen(false); // Close the Add popup
     } catch (error) {
-      console.error("Failed to add item:", error); // Log any errors
+      console.error("Failed to add item:", error); // Log any errors that happen
     }
   };
 
-  // Function to handle clicking the Edit button
+  // Function that runs when we click the Edit button
   const handleEditClick = (item) => {
-    setSelectedItem(item); // Set the selected item for editing
-    setIsEditModalOpen(true); // Open the Edit Item modal
+    setSelectedItem(item); // Remember which item we're editing
+    setIsEditModalOpen(true); // Show the Edit popup
   };
 
-  // Function to handle submitting the edited item
+  // Function that handles saving edited item changes
   const handleEditSubmit = async (updatedData) => {
     try {
-      if (!selectedItem?._id) return; // Ensure there's a selected item with an ID
+      // Make sure we have an item selected to edit
+      if (!selectedItem?._id) {
+        console.error("No item selected for edit");
+        return;
+      }
 
-      // Debug log
-      console.log("Submitting update with:", {
+      // Log what we're about to update (helpful for debugging)
+      console.log("Updating item:", {
         id: selectedItem._id,
-        updatedData,
+        currentData: selectedItem,
+        newData: updatedData,
       });
 
-      await api.updateItem(selectedItem._id, updatedData); // Pass id and data separately
-      await fetchItems(); // Refresh the list of items
-      setIsEditModalOpen(false); // Close the Edit Item modal
+      // Check if we have all the required information
+      if (!updatedData.nama || !updatedData.kategori || !updatedData.satuan) {
+        throw new Error("Missing required fields");
+      }
+
+      await api.updateItem(selectedItem._id, updatedData); // Send updates to server
+      await fetchItems(); // Get fresh list of items
+      setIsEditModalOpen(false); // Close the Edit popup
       setSelectedItem(null); // Clear the selected item
     } catch (error) {
-      console.error("Failed to update item:", error); // Log any errors
+      console.error("Failed to update item:", error);
     }
   };
 
-  // Function to handle deleting an item
+  // Function that handles deleting an item
   const handleDelete = async (id) => {
+    // Show a confirmation popup before deleting
     if (window.confirm("Apakah Anda yakin ingin menghapus item ini?")) {
       try {
         console.log("Attempting to delete item with ID:", id);
-        await api.deleteItem(id);
-        await fetchItems();
+        await api.deleteItem(id); // Tell server to delete the item
+        await fetchItems(); // Get updated list without the deleted item
       } catch (error) {
         console.error("Failed to delete item:", error);
         alert("Gagal menghapus item. Silakan coba lagi.");
       }
     }
   };
+
+  // The actual HTML structure that shows up on the page
 
   // Render the component
   return (
@@ -120,9 +147,7 @@ export default function Home() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tanggal Kadaluarsa
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Aksi
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -163,7 +188,7 @@ export default function Home() {
                       {item.satuan}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-800">
-                      {item.tanggal_kadaluarsa || "-"}
+                      {formatDate(item.tanggal_kadaluarsa)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="space-x-2">
@@ -190,6 +215,7 @@ export default function Home() {
           </table>
         </div>
       </div>
+      <ExpiryAlert items={items} />
 
       {/* Add Item Modal */}
       <AddItemModal

@@ -33,51 +33,28 @@ const addItem = async (item) => {
 
 const updateItem = async (id, itemData) => {
   try {
-    // Construct the payload with id and item data
-    const payload = {
-      _id: id,
-      nama: itemData.nama,
-      kategori: itemData.kategori,
-      jumlah: itemData.jumlah,
-      satuan: itemData.satuan,
-      ...(itemData.tanggal_kadaluarsa && {
-        tanggal_kadaluarsa: itemData.tanggal_kadaluarsa,
-      }),
-    };
-
-    // Validate required fields
-    const requiredFields = ["_id", "nama", "kategori", "jumlah", "satuan"];
-    const missingFields = requiredFields.filter((field) => !payload[field]);
-
-    if (missingFields.length > 0) {
-      throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
-    }
-
-    console.log("Sending payload:", payload); // Debug log
-
+    // AppBackend expects the request without the ID in the URL
     const response = await fetch(BASE_URL, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        _id: id, // Include the ID in the body instead
+        nama: itemData.nama,
+        kategori: itemData.kategori,
+        jumlah: Number(itemData.jumlah),
+        satuan: itemData.satuan,
+        tanggal_kadaluarsa: itemData.tanggal_kadaluarsa || null,
+      }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Server response:", errorText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      const data = await response.json();
-      return data;
-    } else {
-      const text = await response.text();
-      console.error("Received non-JSON response:", text);
-      throw new Error("Received non-JSON response from server");
-    }
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error("Error updating item:", error);
     throw error;

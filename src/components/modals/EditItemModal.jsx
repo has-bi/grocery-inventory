@@ -1,10 +1,7 @@
 "use client";
-
 import { useState, useEffect } from "react";
 
 export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
-  if (!isOpen) return null;
-
   const [formData, setFormData] = useState({
     nama: "",
     kategori: "",
@@ -14,7 +11,7 @@ export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
   });
 
   useEffect(() => {
-    if (item) {
+    if (item && isOpen) {
       setFormData({
         nama: item.nama || "",
         kategori: item.kategori || "",
@@ -23,14 +20,14 @@ export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
         tanggal_kadaluarsa: item.tanggal_kadaluarsa || "",
       });
     }
-  }, [item]);
-
-  if (!isOpen) return null;
+  }, [item, isOpen]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
