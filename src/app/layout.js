@@ -6,7 +6,7 @@ import { HeroUIProvider } from "@heroui/react";
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "BARANGkaliLupa",
+  title: "Barang X Lupa",
   description: "A simple grocery inventory management systems",
 };
 

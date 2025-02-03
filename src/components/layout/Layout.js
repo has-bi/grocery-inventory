@@ -19,7 +19,7 @@ export default function Layout({ children }) {
                   className="object-contain"
                 />
                 <h1 className="text-2xl font-bold text-blue-600">
-                  BARANGkaliLupa
+                  Barang X Lupa
                 </h1>
               </div>
             </div>
@@ -39,7 +39,7 @@ export default function Layout({ children }) {
       <footer className="bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="text-center text-sm text-gray-500">
-            © 2025 BARANGkaliLupa.
+            © 2025 BarangkaliLupa.
           </div>
           <div className="text-center text-sm text-gray-500">
             Created by Hasbi
