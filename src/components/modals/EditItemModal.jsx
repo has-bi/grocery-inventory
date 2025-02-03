@@ -1,5 +1,6 @@
 "use client"; // Enable client-side interactivity
 import { useState, useEffect } from "react";
+import { Button } from "@heroui/react";
 
 // Form for editing existing items
 export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
@@ -153,19 +154,19 @@ export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
 
             {/* Form buttons */}
             <div className="mt-6 flex justify-end space-x-3">
-              <button
+              {/* Cancel button */}
+              <Button
                 type="button"
-                onClick={onClose}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onPress={onClose}
+                // className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                color="danger"
               >
                 Batal
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                Simpan
-              </button>
+              </Button>
+              {/* Submit button */}
+              <Button type="submit" color="primary">
+                Tambah
+              </Button>
             </div>
           </form>
         </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button } from "@heroui/react";
 
 // This is our popup form for adding new items
 // isOpen: tells us if we should show the form
@@ -46,7 +47,9 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }) {
             </button>
           </div>
 
-          <h3 className="text-lg font-semibold text-gray-900">Add New Item</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Tambah Item Baru
+          </h3>
 
           {/* The actual form with all our input fields */}
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -149,20 +152,18 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }) {
             {/* Buttons at the bottom */}
             <div className="mt-6 flex justify-end space-x-3">
               {/* Cancel button */}
-              <button
+              <Button
                 type="button"
-                onClick={onClose}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onPress={onClose}
+                // className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                color="danger"
               >
                 Batal
-              </button>
+              </Button>
               {/* Submit button */}
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
+              <Button type="submit" color="primary">
                 Tambah
-              </button>
+              </Button>
             </div>
           </form>
         </div>

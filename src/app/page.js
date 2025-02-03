@@ -14,8 +14,17 @@ import EditItemModal from "@/components/modals/EditItemModal";
 // Think of this like having a waiter that goes between the kitchen (database) and the customers (users)
 import { api } from "@/actions/api";
 
+// Import the component that shows a warning when items are about to expire
 import ExpiryAlert from "@/components/ExpiryAlert";
+
+// Import the function that formats dates nicely
 import { formatDate } from "@/actions/dateFormatter";
+
+// Import icons for edit and delete buttons
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
+
+// Import the Button component from HeroUI
+import { Button } from "@heroui/react";
 
 // This is like the blueprint for my main page
 export default function Home() {
@@ -26,6 +35,7 @@ export default function Home() {
   const [items, setItems] = useState([]); // Like a shopping list that starts empty
   const [loading, setLoading] = useState(true); // Like a "busy" sign while we're getting stuff
   const [selectedItem, setSelectedItem] = useState(null); // Remember which item we're editing
+  const [pending, setPending] = useState(false);
 
   // When the page first opens, get our items
   // Like checking your inventory when you first open your store
@@ -119,15 +129,15 @@ export default function Home() {
     <div className="container mx-auto px-4">
       {/* The top part with title and Add button */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800">
-          Daftar Inventori
-        </h2>
-        <button
-          onClick={() => setIsModalOpen(true)} // Show Add Item popup when clicked
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <h2 className="text-2xl font-semibold text-gray-800">Daftar Barang</h2>
+        <Button
+          onPress={() => setIsModalOpen(true)} // Show Add Item popup when clicked
+          disabled={pending}
+          color="primary"
+          type="button"
         >
-          Tambah Item
-        </button>
+          {pending ? "Loading..." : "Tambah Item"}
+        </Button>
       </div>
 
       {/* The table that shows all our items */}
@@ -204,15 +214,17 @@ export default function Home() {
                         {/* Buttons for each row */}
                         <button
                           onClick={() => handleEditClick(item)}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-full transition-colors"
+                          title="Edit item"
                         >
-                          Edit
+                          <FiEdit2 size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(item._id)}
-                          className="text-red-600 hover:text-red-800"
+                          className="text-red-600 hover:text-red-800 hover:bg-red-100 p-1.5 rounded-full transition-colors"
+                          title="Hapus item"
                         >
-                          Hapus
+                          <FiTrash2 size={18} />
                         </button>
                       </div>
                     </td>
