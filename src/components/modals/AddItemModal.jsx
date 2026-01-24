@@ -54,7 +54,7 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }) {
       <ModalContent>
         {(onClose) => (
           <form onSubmit={handleSubmit}>
-            <ModalHeader className="flex flex-col gap-1 text-black">
+            <ModalHeader className="flex flex-col gap-1 text-gray-900">
               Tambah Item Baru
             </ModalHeader>
             <ModalBody>
@@ -67,8 +67,8 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }) {
                 }
                 required
                 classNames={{
-                  input: "text-black",
-                  label: "text-black",
+                  input: "text-gray-900",
+                  label: "text-gray-900",
                 }}
               />
               <Select
@@ -80,13 +80,13 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }) {
                 }
                 required
                 classNames={{
-                  value: "text-black",
-                  label: "text-black",
-                  trigger: "text-black",
+                  value: "text-gray-900",
+                  label: "text-gray-900",
+                  trigger: "text-gray-900",
                 }}
               >
                 {categories.map((cat) => (
-                  <SelectItem key={cat.key} value={cat.key} className="text-black">
+                  <SelectItem key={cat.key} value={cat.key} className="text-gray-900">
                     {cat.label}
                   </SelectItem>
                 ))}
@@ -104,8 +104,8 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }) {
                   required
                   className="flex-1"
                   classNames={{
-                    input: "text-black",
-                    label: "text-black",
+                    input: "text-gray-900",
+                    label: "text-gray-900",
                   }}
                 />
                 <Select
@@ -118,13 +118,13 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }) {
                   required
                   className="flex-1"
                   classNames={{
-                    value: "text-black",
-                    label: "text-black",
-                    trigger: "text-black",
+                    value: "text-gray-900",
+                    label: "text-gray-900",
+                    trigger: "text-gray-900",
                   }}
                 >
                   {units.map((unit) => (
-                    <SelectItem key={unit.key} value={unit.key} className="text-black">
+                    <SelectItem key={unit.key} value={unit.key} className="text-gray-900">
                       {unit.label}
                     </SelectItem>
                   ))}
@@ -143,8 +143,8 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }) {
                 }
                 labelPlacement="outside"
                 classNames={{
-                  input: "text-black",
-                  label: "text-black",
+                  input: "text-gray-900",
+                  label: "text-gray-900",
                 }}
               />
             </ModalBody>

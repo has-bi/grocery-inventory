@@ -25,10 +25,7 @@ export default function InventoryStats({ items }) {
   );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 relative">
-      <div className="absolute top-0 right-0 -mt-10">
-        <NotificationButton />
-      </div>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
       <StatCard
         title="Total Barang"
         value={stats.totalItems}
@@ -53,52 +50,12 @@ export default function InventoryStats({ items }) {
   );
 }
 
-import { Button, Tooltip } from "@heroui/react";
-import { FiBell } from "react-icons/fi";
-import { useState } from "react";
-
-function NotificationButton() {
-  const [loading, setLoading] = useState(false);
-
-  const handleNotify = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/notify", { method: "POST" });
-      const data = await res.json();
-      if (data.success) {
-        alert("Notifikasi terkirim ke Telegram!");
-      } else {
-        alert("Gagal mengirim notifikasi: " + (data.error || "Unknown error"));
-      }
-    } catch (err) {
-      alert("Error: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Tooltip content="Test Telegram Notification">
-      <Button
-        isIconOnly
-        size="sm"
-        color="primary"
-        variant="ghost"
-        onPress={handleNotify}
-        isLoading={loading}
-      >
-        <FiBell size={20} />
-      </Button>
-    </Tooltip>
-  );
-}
-
 function StatCard({ title, value, icon, subtext, alert }) {
   return (
     <Card className={`border-none ${alert ? "ring-2 ring-red-500/20" : ""}`}>
       <CardBody className="flex flex-row items-center justify-between p-4">
         <div>
-          <p className="text-sm text-gray-600 font-medium">{title}</p>
+          <p className="text-sm text-gray-700 font-medium">{title}</p>
           <div className="flex items-baseline gap-2">
             <h4 className="text-2xl font-bold text-gray-900">{value}</h4>
             {subtext && <span className="text-xs text-red-600 font-medium">{subtext}</span>}

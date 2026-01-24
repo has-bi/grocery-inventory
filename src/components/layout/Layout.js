@@ -24,8 +24,7 @@ export default function Layout({ children }) {
               </div>
             </div>
 
-            {/* App Version or Additional Info */}
-            <div className="text-sm text-gray-500">Beta Version</div>
+            <div className="text-sm text-gray-700">Beta Version</div>
           </div>
         </nav>
       </header>
@@ -38,10 +37,10 @@ export default function Layout({ children }) {
       {/* Simple Footer */}
       <footer className="bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="text-center text-sm text-gray-600">
+          <div className="text-center text-sm text-gray-700">
             © 2025 Isi Kulkas.
           </div>
-          <div className="text-center text-sm text-gray-600">
+          <div className="text-center text-sm text-gray-700">
             Created by Hasbi
           </div>
         </div>

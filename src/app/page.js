@@ -5,6 +5,7 @@ import InventoryTable from "@/components/InventoryTable";
 import InventoryStats from "@/components/InventoryStats";
 import AddItemModal from "@/components/modals/AddItemModal";
 import EditItemModal from "@/components/modals/EditItemModal";
+import NotificationButton from "@/components/NotificationButton";
 import { Input, Button, Spinner } from "@heroui/react";
 import { FiSearch, FiPlus } from "react-icons/fi";
 
@@ -70,18 +71,21 @@ export default function Home() {
             <h1 className="text-3xl font-bold text-gray-900">
               Isi Kulkas
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-700 mt-1">
               Pantau kesegaran bahan makananmu
             </p>
           </div>
-          <Button
-            color="primary"
-            endContent={<FiPlus />}
-            onPress={() => setIsAddModalOpen(true)}
-            className="font-medium"
-          >
-            Tambah Barang
-          </Button>
+          <div className="flex gap-2">
+            <NotificationButton />
+            <Button
+              color="primary"
+              endContent={<FiPlus />}
+              onPress={() => setIsAddModalOpen(true)}
+              className="font-medium"
+            >
+              Tambah Barang
+            </Button>
+          </div>
         </div>
 
         {/* Stats Section */}
@@ -92,7 +96,7 @@ export default function Home() {
           <div className="w-full md:w-1/3">
             <Input
               placeholder="Cari barang atau kategori..."
-              startContent={<FiSearch className="text-gray-500" />}
+              startContent={<FiSearch className="text-gray-700" />}
               value={searchQuery}
               onValueChange={setSearchQuery}
               isClearable
