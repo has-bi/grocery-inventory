@@ -1,4 +1,3 @@
-import { Button, Tooltip } from "@heroui/react";
 import { FiBell } from "react-icons/fi";
 import { useState } from "react";
 
@@ -23,17 +22,17 @@ export default function NotificationButton() {
   };
 
   return (
-    <Tooltip content="Test Telegram Notification">
-      <Button
-        isIconOnly
-        size="sm"
-        color="primary"
-        variant="ghost"
-        onPress={handleNotify}
-        isLoading={loading}
-      >
-        <FiBell size={20} />
-      </Button>
-    </Tooltip>
+    <button
+      className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors text-gray-600 hover:text-black"
+      onClick={handleNotify}
+      disabled={loading}
+      title="Test Telegram Notification"
+    >
+      {loading ? (
+        <span className="loading loading-spinner loading-xs"></span>
+      ) : (
+        <FiBell size={18} />
+      )}
+    </button>
   );
 }

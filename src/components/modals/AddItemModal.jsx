@@ -1,15 +1,7 @@
 import { useState } from "react";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-  Input,
-  Select,
-  SelectItem,
-} from "@heroui/react";
+import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/Modal";
+import { Input } from "@/components/ui/Input";
+import { Select, SelectItem } from "@/components/ui/Select";
 
 export default function AddItemModal({ isOpen, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
@@ -23,7 +15,6 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
-    // Reset form after submit? optional, but good practice if not done in parent
     setFormData({
       nama: "",
       kategori: "",
@@ -50,115 +41,77 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }) {
   ];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} placement="center">
-      <ModalContent>
-        {(onClose) => (
-          <form onSubmit={handleSubmit}>
-            <ModalHeader className="flex flex-col gap-1 text-gray-900">
-              Tambah Item Baru
-            </ModalHeader>
-            <ModalBody>
-              <Input
-                label="Nama Item"
-                placeholder="Contoh: Apel Malang"
-                value={formData.nama}
-                onChange={(e) =>
-                  setFormData({ ...formData, nama: e.target.value })
-                }
-                required
-                classNames={{
-                  input: "text-gray-900",
-                  label: "text-gray-900",
-                }}
-              />
-              <Select
-                label="Kategori"
-                placeholder="Pilih kategori"
-                selectedKeys={formData.kategori ? [formData.kategori] : []}
-                onChange={(e) =>
-                  setFormData({ ...formData, kategori: e.target.value })
-                }
-                required
-                classNames={{
-                  value: "text-gray-900",
-                  label: "text-gray-900",
-                  trigger: "text-gray-900",
-                }}
-              >
-                {categories.map((cat) => (
-                  <SelectItem key={cat.key} value={cat.key} className="text-gray-900">
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </Select>
-              <div className="flex gap-4">
-                <Input
-                  type="number"
-                  label="Jumlah"
-                  placeholder="0"
-                  min="0"
-                  value={formData.jumlah}
-                  onChange={(e) =>
-                    setFormData({ ...formData, jumlah: e.target.value })
-                  }
-                  required
-                  className="flex-1"
-                  classNames={{
-                    input: "text-gray-900",
-                    label: "text-gray-900",
-                  }}
-                />
-                <Select
-                  label="Satuan"
-                  placeholder="Satuan"
-                  selectedKeys={formData.satuan ? [formData.satuan] : []}
-                  onChange={(e) =>
-                    setFormData({ ...formData, satuan: e.target.value })
-                  }
-                  required
-                  className="flex-1"
-                  classNames={{
-                    value: "text-gray-900",
-                    label: "text-gray-900",
-                    trigger: "text-gray-900",
-                  }}
-                >
-                  {units.map((unit) => (
-                    <SelectItem key={unit.key} value={unit.key} className="text-gray-900">
-                      {unit.label}
-                    </SelectItem>
-                  ))}
-                </Select>
-              </div>
-              <Input
-                type="date"
-                label="Tanggal Kadaluarsa"
-                placeholder="Pilih tanggal"
-                value={formData.tanggal_kadaluarsa}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    tanggal_kadaluarsa: e.target.value,
-                  })
-                }
-                labelPlacement="outside"
-                classNames={{
-                  input: "text-gray-900",
-                  label: "text-gray-900",
-                }}
-              />
-            </ModalBody>
-            <ModalFooter>
-              <Button color="danger" variant="light" onPress={onClose}>
-                Batal
-              </Button>
-              <Button color="primary" type="submit">
-                Tambah
-              </Button>
-            </ModalFooter>
-          </form>
-        )}
-      </ModalContent>
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <ModalHeader>Tambah Item Baru</ModalHeader>
+        <ModalBody>
+          <Input
+            label="Nama Item"
+            placeholder="Contoh: Apel Malang"
+            value={formData.nama}
+            onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
+            required
+          />
+          <Select
+            label="Kategori"
+            placeholder="Pilih kategori"
+            selectedKeys={formData.kategori ? [formData.kategori] : []}
+            onChange={(e) => setFormData({ ...formData, kategori: e.target.value })}
+            required
+          >
+            {categories.map((cat) => (
+              <SelectItem key={cat.key} value={cat.key}>
+                {cat.label}
+              </SelectItem>
+            ))}
+          </Select>
+          <div className="flex gap-4">
+            <Input
+              type="number"
+              label="Jumlah"
+              placeholder="0"
+              min="0"
+              value={formData.jumlah}
+              onChange={(e) => setFormData({ ...formData, jumlah: e.target.value })}
+              required
+              className="flex-1"
+              labelPlacement="outside"
+            />
+            <Select
+              label="Satuan"
+              placeholder="Satuan"
+              selectedKeys={formData.satuan ? [formData.satuan] : []}
+              onChange={(e) => setFormData({ ...formData, satuan: e.target.value })}
+              required
+              className="flex-1"
+            >
+              {units.map((unit) => (
+                <SelectItem key={unit.key} value={unit.key}>
+                  {unit.label}
+                </SelectItem>
+              ))}
+            </Select>
+          </div>
+          <Input
+            type="date"
+            label="Tanggal Kadaluarsa"
+            placeholder="Pilih tanggal"
+            value={formData.tanggal_kadaluarsa}
+            onChange={(e) =>
+              setFormData({ ...formData, tanggal_kadaluarsa: e.target.value })
+            }
+            labelPlacement="outside"
+          />
+        </ModalBody>
+        <ModalFooter>
+          <button type="button" className="px-4 py-2 text-gray-600 hover:text-black transition-colors" onClick={onClose}>
+            Batal
+          </button>
+          <button type="submit" className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors">
+            Tambah
+          </button>
+        </ModalFooter>
+      </form>
     </Modal>
   );
 }

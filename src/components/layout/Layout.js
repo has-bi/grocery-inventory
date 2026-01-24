@@ -3,46 +3,33 @@ import Image from "next/image";
 export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm sticky top-0 z-50">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="bg-white border-b border-gray-200">
+        <nav className="max-w-6xl mx-auto px-6">
           <div className="flex justify-between items-center h-16">
-            {/* Logo and Brand */}
-            <div className="flex items-center">
-              <div className="flex items-center space-x-3">
-                {/* Logo */}
-                <Image
-                  src="/images/Logo.png"
-                  alt="Isi Kulkas Logo"
-                  width={32}
-                  height={32}
-                  // Optional: add styling if needed
-                  className="object-contain"
-                />
-                <h1 className="text-2xl font-bold text-blue-600">
-                  BarangXLupa
-                </h1>
-              </div>
+            <div className="flex items-center gap-3">
+              <Image
+                src="/images/Logo.png"
+                alt="Isi Kulkas Logo"
+                width={28}
+                height={28}
+                className="object-contain"
+              />
+              <h1 className="text-xl font-light text-black">
+                BarangXLupa
+              </h1>
             </div>
-
-            <div className="text-sm text-gray-700">Beta Version</div>
+            <span className="text-xs text-gray-400">Beta</span>
           </div>
         </nav>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main>
         {children}
       </main>
 
-      {/* Simple Footer */}
-      <footer className="bg-white border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="text-center text-sm text-gray-700">
-            © 2025 Isi Kulkas.
-          </div>
-          <div className="text-center text-sm text-gray-700">
-            Created by Hasbi
-          </div>
+      <footer className="border-t border-gray-200 py-6 mt-12">
+        <div className="max-w-6xl mx-auto px-6 text-center text-xs text-gray-400">
+          <p>© 2025 BarangXLupa · Created by Hasbi</p>
         </div>
       </footer>
     </div>

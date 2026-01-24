@@ -1,4 +1,3 @@
-import { Card, CardBody } from "@heroui/react";
 import { FiPackage, FiAlertCircle, FiClock } from "react-icons/fi";
 
 export default function InventoryStats({ items }) {
@@ -25,44 +24,39 @@ export default function InventoryStats({ items }) {
   );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <StatCard
         title="Total Barang"
         value={stats.totalItems}
-        icon={<FiPackage className="text-blue-500" size={24} />}
-        color="primary"
+        icon={<FiPackage size={20} />}
+        iconColor="text-gray-600"
       />
       <StatCard
-        title="Akan Basi (<= 5 Hari)"
+        title="Akan Basi"
         value={stats.expiringSoon}
-        icon={<FiAlertCircle className="text-orange-500" size={24} />}
-        color="warning"
+        icon={<FiAlertCircle size={20} />}
+        iconColor="text-orange-500"
         alert={stats.expiringSoon > 0}
       />
       <StatCard
-        title="Sudah Kadaluarsa"
+        title="Kadaluarsa"
         value={stats.expired}
-        icon={<FiClock className="text-red-500" size={24} />}
-        color="danger"
+        icon={<FiClock size={20} />}
+        iconColor="text-red-500"
         alert={stats.expired > 0}
       />
     </div>
   );
 }
 
-function StatCard({ title, value, icon, subtext, alert }) {
+function StatCard({ title, value, icon, iconColor, alert }) {
   return (
-    <Card className={`border-none ${alert ? "ring-2 ring-red-500/20" : ""}`}>
-      <CardBody className="flex flex-row items-center justify-between p-4">
-        <div>
-          <p className="text-sm text-gray-700 font-medium">{title}</p>
-          <div className="flex items-baseline gap-2">
-            <h4 className="text-2xl font-bold text-gray-900">{value}</h4>
-            {subtext && <span className="text-xs text-red-600 font-medium">{subtext}</span>}
-          </div>
-        </div>
-        <div className="p-3 bg-gray-50 rounded-lg">{icon}</div>
-      </CardBody>
-    </Card>
+    <div className={`p-4 rounded-lg border ${alert ? "border-red-200 bg-red-50/50" : "border-gray-200 bg-white"}`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className={`${iconColor}`}>{icon}</span>
+        <span className="text-3xl font-light text-black">{value}</span>
+      </div>
+      <p className="text-sm text-gray-500 font-medium">{title}</p>
+    </div>
   );
 }
