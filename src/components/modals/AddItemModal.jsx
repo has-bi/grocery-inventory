@@ -1,144 +1,121 @@
 import { useState } from "react";
-import { Button } from "@heroui/react";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  Input,
+  Select,
+  SelectItem,
+} from "@heroui/react";
 
-// This is our popup form for adding new items
-// isOpen: tells us if we should show the form
-// onClose: function to run when we close the form
-// onSubmit: function to run when we submit the form
 export default function AddItemModal({ isOpen, onClose, onSubmit }) {
-  // If the form isn't supposed to be open, don't show anything
-  if (!isOpen) return null;
-
-  // Create a box to store our form data
-  // Think of this like a paper form where we'll write down all the details
   const [formData, setFormData] = useState({
-    nama: "", // Name of item
-    kategori: "", // Category (like fruit, vegetable, etc)
-    satuan: "", // Unit (kg, liter, etc)
-    jumlah: "", // Quantity
-    tanggal_kadaluarsa: "", // Expiry date
+    nama: "",
+    kategori: "",
+    satuan: "",
+    jumlah: "",
+    tanggal_kadaluarsa: "",
   });
 
-  // When someone submits the form
-  // Like when you're done filling out a paper form and hand it in
   const handleSubmit = (e) => {
-    e.preventDefault(); // Stop the page from reloading
-    onSubmit(formData); // Send the form data to be processed
+    e.preventDefault();
+    onSubmit(formData);
+    // Reset form after submit? optional, but good practice if not done in parent
+    setFormData({
+      nama: "",
+      kategori: "",
+      satuan: "",
+      jumlah: "",
+      tanggal_kadaluarsa: "",
+    });
   };
 
-  // The actual form that shows up on screen
+  const categories = [
+    { key: "Buah", label: "Buah" },
+    { key: "Sayuran", label: "Sayuran" },
+    { key: "Daging", label: "Daging" },
+    { key: "Susu", label: "Susu" },
+    { key: "Bahan Makanan", label: "Bahan Makanan" },
+  ];
+
+  const units = [
+    { key: "kilogram", label: "Kilogram" },
+    { key: "gram", label: "Gram" },
+    { key: "liter", label: "Liter" },
+    { key: "mililiter", label: "Mililiter" },
+    { key: "pcs", label: "Pcs" },
+  ];
+
   return (
-    // This makes our form float over everything else
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Center everything on screen */}
-      <div className="flex min-h-screen items-center justify-center px-4">
-        {/* Dark overlay behind the form */}
-        <div className="fixed inset-0 bg-black/50" onClick={onClose}></div>
-
-        {/* The white form container */}
-        <div className="relative bg-white w-full max-w-lg rounded-lg p-6">
-          {/* Close button (X) in top right */}
-          <div className="absolute right-4 top-4">
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              ✕
-            </button>
-          </div>
-
-          <h3 className="text-lg font-semibold text-gray-900">
-            Tambah Item Baru
-          </h3>
-
-          {/* The actual form with all our input fields */}
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            {/* Name input field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Nama Item
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+    <Modal isOpen={isOpen} onClose={onClose} placement="center">
+      <ModalContent>
+        {(onClose) => (
+          <form onSubmit={handleSubmit}>
+            <ModalHeader className="flex flex-col gap-1">
+              Tambah Item Baru
+            </ModalHeader>
+            <ModalBody>
+              <Input
+                label="Nama Item"
+                placeholder="Contoh: Apel Malang"
                 value={formData.nama}
-                // When someone types, update our form data
                 onChange={(e) =>
                   setFormData({ ...formData, nama: e.target.value })
                 }
                 required
               />
-            </div>
-
-            {/* Category dropdown */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Kategori
-              </label>
-              <select
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
-                value={formData.kategori}
+              <Select
+                label="Kategori"
+                placeholder="Pilih kategori"
+                selectedKeys={formData.kategori ? [formData.kategori] : []}
                 onChange={(e) =>
                   setFormData({ ...formData, kategori: e.target.value })
                 }
                 required
               >
-                <option value="">Pilih kategori</option>
-                <option value="Buah">Buah</option>
-                <option value="Sayuran">Sayuran</option>
-                <option value="Daging">Daging</option>
-                <option value="Susu">Susu</option>
-                <option value="Bahan Makanan">Bahan Makanan</option>
-              </select>
-            </div>
-
-            {/* Unit dropdown */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Satuan
-              </label>
-              <select
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
-                value={formData.satuan}
-                onChange={(e) =>
-                  setFormData({ ...formData, satuan: e.target.value })
-                }
-                required
-              >
-                <option value="">Pilih satuan</option>
-                <option value="kilogram">Kilogram</option>
-                <option value="gram">Gram</option>
-                <option value="liter">Liter</option>
-                <option value="mililiter">Mililiter</option>
-                <option value="pcs">Pcs</option>
-              </select>
-            </div>
-
-            {/* Quantity input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Jumlah
-              </label>
-              <input
-                type="number"
-                min="0" // Can't have negative quantity
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
-                value={formData.jumlah}
-                onChange={(e) =>
-                  setFormData({ ...formData, jumlah: e.target.value })
-                }
-                required
-              />
-            </div>
-
-            {/* Expiry date input (optional) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Tanggal Kadaluarsa (Opsional)
-              </label>
-              <input
+                {categories.map((cat) => (
+                  <SelectItem key={cat.key} value={cat.key}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </Select>
+              <div className="flex gap-4">
+                <Input
+                  type="number"
+                  label="Jumlah"
+                  placeholder="0"
+                  min="0"
+                  value={formData.jumlah}
+                  onChange={(e) =>
+                    setFormData({ ...formData, jumlah: e.target.value })
+                  }
+                  required
+                  className="flex-1"
+                />
+                <Select
+                  label="Satuan"
+                  placeholder="Satuan"
+                  selectedKeys={formData.satuan ? [formData.satuan] : []}
+                  onChange={(e) =>
+                    setFormData({ ...formData, satuan: e.target.value })
+                  }
+                  required
+                  className="flex-1"
+                >
+                  {units.map((unit) => (
+                    <SelectItem key={unit.key} value={unit.key}>
+                      {unit.label}
+                    </SelectItem>
+                  ))}
+                </Select>
+              </div>
+              <Input
                 type="date"
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                label="Tanggal Kadaluarsa"
+                placeholder="Pilih tanggal"
                 value={formData.tanggal_kadaluarsa}
                 onChange={(e) =>
                   setFormData({
@@ -146,28 +123,20 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }) {
                     tanggal_kadaluarsa: e.target.value,
                   })
                 }
+                labelPlacement="outside"
               />
-            </div>
-
-            {/* Buttons at the bottom */}
-            <div className="mt-6 flex justify-end space-x-3">
-              {/* Cancel button */}
-              <Button
-                type="button"
-                onPress={onClose}
-                // className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                color="danger"
-              >
+            </ModalBody>
+            <ModalFooter>
+              <Button color="danger" variant="light" onPress={onClose}>
                 Batal
               </Button>
-              {/* Submit button */}
-              <Button type="submit" color="primary">
+              <Button color="primary" type="submit">
                 Tambah
               </Button>
-            </div>
+            </ModalFooter>
           </form>
-        </div>
-      </div>
-    </div>
+        )}
+      </ModalContent>
+    </Modal>
   );
 }
