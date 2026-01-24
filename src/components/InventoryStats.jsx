@@ -1,36 +1,31 @@
 import { Card, CardBody } from "@heroui/react";
-import { FiPackage, FiAlertCircle, FiClock, FiActivity } from "react-icons/fi";
+import { FiPackage, FiAlertCircle, FiClock } from "react-icons/fi";
 
 export default function InventoryStats({ items }) {
   const stats = items.reduce(
     (acc, item) => {
       acc.totalItems += 1;
-      acc.totalQuantity += parseInt(item.jumlah) || 0;
-
-      if (parseInt(item.jumlah) < 5) {
-        acc.lowStock += 1;
-      }
 
       if (item.tanggal_kadaluarsa) {
         const expiryDate = new Date(item.tanggal_kadaluarsa);
         const today = new Date();
-        const threeDaysFromNow = new Date();
-        threeDaysFromNow.setDate(today.getDate() + 3);
+        const fiveDaysFromNow = new Date();
+        fiveDaysFromNow.setDate(today.getDate() + 5);
 
         if (expiryDate < today) {
           acc.expired += 1;
-        } else if (expiryDate <= threeDaysFromNow) {
+        } else if (expiryDate <= fiveDaysFromNow) {
           acc.expiringSoon += 1;
         }
       }
 
       return acc;
     },
-    { totalItems: 0, totalQuantity: 0, lowStock: 0, expired: 0, expiringSoon: 0 }
+    { totalItems: 0, expired: 0, expiringSoon: 0 }
   );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 relative">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 relative">
       <div className="absolute top-0 right-0 -mt-10">
         <NotificationButton />
       </div>
@@ -41,25 +36,18 @@ export default function InventoryStats({ items }) {
         color="primary"
       />
       <StatCard
-        title="Total Stok"
-        value={stats.totalQuantity}
-        icon={<FiActivity className="text-green-500" size={24} />}
-        color="success"
-      />
-      <StatCard
-        title="Stok Menipis"
-        value={stats.lowStock}
+        title="Akan Basi (<= 5 Hari)"
+        value={stats.expiringSoon}
         icon={<FiAlertCircle className="text-orange-500" size={24} />}
         color="warning"
-        alert={stats.lowStock > 0}
+        alert={stats.expiringSoon > 0}
       />
       <StatCard
-        title="Perlu Perhatian"
-        value={stats.expired + stats.expiringSoon}
-        subtext={`${stats.expired} Kadaluarsa, ${stats.expiringSoon} Segera`}
+        title="Sudah Kadaluarsa"
+        value={stats.expired}
         icon={<FiClock className="text-red-500" size={24} />}
         color="danger"
-        alert={stats.expired > 0 || stats.expiringSoon > 0}
+        alert={stats.expired > 0}
       />
     </div>
   );

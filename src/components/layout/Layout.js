@@ -12,14 +12,14 @@ export default function Layout({ children }) {
                 {/* Logo */}
                 <Image
                   src="/images/Logo.png"
-                  alt="BARANGkaliLupa Logo"
+                  alt="Isi Kulkas Logo"
                   width={32}
                   height={32}
                   // Optional: add styling if needed
                   className="object-contain"
                 />
                 <h1 className="text-2xl font-bold text-blue-600">
-                  Barang X Lupa
+                  BarangXLupa
                 </h1>
               </div>
             </div>
@@ -38,10 +38,10 @@ export default function Layout({ children }) {
       {/* Simple Footer */}
       <footer className="bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="text-center text-sm text-gray-500">
-            © 2025 BarangkaliLupa.
+          <div className="text-center text-sm text-gray-600">
+            © 2025 Isi Kulkas.
           </div>
-          <div className="text-center text-sm text-gray-500">
+          <div className="text-center text-sm text-gray-600">
             Created by Hasbi
           </div>
         </div>

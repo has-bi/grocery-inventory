@@ -68,10 +68,10 @@ export default function Home() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Grocery Inventory
+              Isi Kulkas
             </h1>
-            <p className="text-gray-500 mt-1">
-              Manage your store inventory efficiently
+            <p className="text-gray-600 mt-1">
+              Pantau kesegaran bahan makananmu
             </p>
           </div>
           <Button
@@ -92,7 +92,7 @@ export default function Home() {
           <div className="w-full md:w-1/3">
             <Input
               placeholder="Cari barang atau kategori..."
-              startContent={<FiSearch className="text-gray-400" />}
+              startContent={<FiSearch className="text-gray-500" />}
               value={searchQuery}
               onValueChange={setSearchQuery}
               isClearable

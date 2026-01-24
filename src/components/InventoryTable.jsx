@@ -36,15 +36,10 @@ export default function InventoryTable({
             <p className="text-bold text-sm text-gray-900">
               {item.jumlah} {item.satuan}
             </p>
-            {item.jumlah < 5 && (
-              <Chip color="warning" size="sm" variant="flat">
-                Low Stock
-              </Chip>
-            )}
           </div>
         );
       case "tanggal_kadaluarsa":
-        if (!item.tanggal_kadaluarsa) return <span className="text-gray-500">-</span>;
+        if (!item.tanggal_kadaluarsa) return <span className="text-gray-600">-</span>;
         
         const isExpired = new Date(item.tanggal_kadaluarsa) < new Date();
         return (
@@ -61,7 +56,7 @@ export default function InventoryTable({
           <div className="relative flex items-center gap-2">
             <Tooltip content="Edit Item">
               <span
-                className="text-lg text-gray-500 cursor-pointer active:opacity-50 hover:text-gray-800"
+                className="text-lg text-gray-600 cursor-pointer active:opacity-50 hover:text-gray-900"
                 onClick={() => onEdit(item)}
               >
                 <FiEdit2 />
