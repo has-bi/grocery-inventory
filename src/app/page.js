@@ -69,10 +69,10 @@ export default function Home() {
         <div className="mb-12">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-4xl font-light text-black mb-2">Isi Kulkas</h1>
-              <p className="text-gray-500">
-                Pantau kesegaran bahan makananmu
-              </p>
+              <h1 className="text-4xl font-light text-black mb-2">
+                Barang Kali Lupa
+              </h1>
+              <p className="text-gray-500">Pantau kesegaran bahan makananmu</p>
             </div>
             <div className="flex gap-3">
               <NotificationButton />
@@ -108,9 +108,7 @@ export default function Home() {
               <p className="text-sm text-gray-500">Loading items...</p>
             </div>
           ) : error ? (
-            <div className="text-center text-red-500 py-12">
-              Error: {error}
-            </div>
+            <div className="text-center text-red-500 py-12">Error: {error}</div>
           ) : (
             <InventoryTable
               items={items}
