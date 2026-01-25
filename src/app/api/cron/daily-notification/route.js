@@ -6,11 +6,17 @@ const DATA_URL = "https://v1.appbackend.io/v1/rows/6lqd5EErN0qA";
 
 export async function GET(request) {
   try {
-    // Verify the request is from Vercel Cron or has the correct secret
+    // Verify the request is from Vercel Cron
+    // Vercel sends a special header for cron jobs
+    const cronHeader = request.headers.get("x-vercel-cron");
     const authHeader = request.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    // Allow if it's from Vercel Cron OR has correct authorization
+    const isVercelCron = cronHeader !== null;
+    const hasValidAuth = cronSecret && authHeader === `Bearer ${cronSecret}`;
+
+    if (!isVercelCron && !hasValidAuth) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 401 }
