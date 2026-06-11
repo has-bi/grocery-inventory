@@ -24,6 +24,7 @@ function setupSheets() {
   const SCHEMAS = {
     Grocery: ["_id", "nama", "kategori", "jumlah", "satuan", "tanggal_kadaluarsa", "lokasi"],
     Health: ["date", "weight", "exercise", "meals_pagi", "meals_siang", "meals_sore", "score", "warnings"],
+    Catalog: ["_id", "nama", "kategori", "jumlah_default", "satuan", "lokasi"],
   };
 
   for (const [name, headers] of Object.entries(SCHEMAS)) {
@@ -85,6 +86,8 @@ function doPost(e) {
         return jsonResponse(deleteRow(sheetName, id));
       case "upsert":
         return jsonResponse(upsertHealthRow(payload));
+      case "upsertByName":
+        return jsonResponse(upsertGroceryByName(payload));
       default:
         return jsonResponse({ error: "Unknown action" });
     }
@@ -193,6 +196,29 @@ function upsertHealthRow(payload) {
   const row = headers.map((h) => (payload[h] !== undefined ? payload[h] : ""));
   sheet.appendRow(row);
   return { success: true };
+}
+
+function upsertGroceryByName(payload) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName("Grocery");
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const namaCol = headers.indexOf("nama");
+
+  const targetName = String(payload.nama || "").toLowerCase().trim();
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][namaCol]).toLowerCase().trim() === targetName) {
+      headers.forEach((h, j) => {
+        if (payload[h] !== undefined) {
+          sheet.getRange(i + 1, j + 1).setValue(payload[h]);
+        }
+      });
+      return { success: true, action: "updated" };
+    }
+  }
+
+  return addRow("Grocery", payload);
 }
 
 function jsonResponse(data) {
