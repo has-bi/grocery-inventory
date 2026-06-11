@@ -5,8 +5,8 @@ import Layout from "@/components/layout/Layout";
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Isi Kulkas",
-  description: "Aplikasi pemantau stok kulkas",
+  title: "BarangXLupa",
+  description: "Personal household app — grocery & health tracker",
 };
 
 export default function RootLayout({ children }) {

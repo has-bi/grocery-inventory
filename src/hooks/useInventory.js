@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { api } from "@/actions/api";
+import { groceryApi as api } from "@/actions/sheets";
 
 export function useInventory() {
   const [items, setItems] = useState([]);
@@ -15,7 +15,7 @@ export function useInventory() {
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const data = await api.getItem();
+      const data = await api.getAll();
       setItems(data);
       setError(null);
     } catch (err) {

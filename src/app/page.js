@@ -63,65 +63,56 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        {/* Header Section */}
-        <div className="mb-12">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-4xl font-light text-black mb-2">
-                Barang Kali Lupa
-              </h1>
-              <p className="text-gray-500">Pantau kesegaran bahan makananmu</p>
-            </div>
-            <div className="flex gap-3">
-              <NotificationButton />
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
-              >
-                <FiPlus size={18} />
-                Tambah Barang
-              </button>
-            </div>
+    <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-2xl font-light text-black">Grocery</h2>
+            <p className="text-sm text-gray-400 mt-0.5">Pantau stok & kesegaran bahan makanan</p>
           </div>
-
-          {/* Stats Section */}
-          <InventoryStats items={allItems} />
+          <div className="flex gap-3">
+            <NotificationButton />
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2 text-sm"
+            >
+              <FiPlus size={16} />
+              Tambah
+            </button>
+          </div>
         </div>
 
-        {/* Search */}
-        <div className="mb-6">
-          <SearchInput
-            placeholder="Cari barang atau kategori..."
-            icon={<FiSearch className="text-gray-400" />}
-            value={searchQuery}
-            onChange={setSearchQuery}
-          />
-        </div>
-
-        {/* Table Section */}
-        <div className="bg-white rounded-lg border border-gray-200">
-          {loading ? (
-            <div className="flex flex-col justify-center items-center h-64 gap-3">
-              <span className="loading loading-spinner loading-lg text-black"></span>
-              <p className="text-sm text-gray-500">Loading items...</p>
-            </div>
-          ) : error ? (
-            <div className="text-center text-red-500 py-12">Error: {error}</div>
-          ) : (
-            <InventoryTable
-              items={items}
-              sortConfig={sortConfig}
-              requestSort={requestSort}
-              onEdit={handleEditClick}
-              onDelete={handleDeleteItem}
-            />
-          )}
-        </div>
+        <InventoryStats items={allItems} />
       </div>
 
-      {/* Modals */}
+      <div className="mb-5">
+        <SearchInput
+          placeholder="Cari barang atau kategori..."
+          icon={<FiSearch className="text-gray-400" />}
+          value={searchQuery}
+          onChange={setSearchQuery}
+        />
+      </div>
+
+      <div className="bg-white rounded-lg border border-gray-200">
+        {loading ? (
+          <div className="flex flex-col justify-center items-center h-64 gap-3">
+            <span className="loading loading-spinner loading-lg text-black"></span>
+            <p className="text-sm text-gray-500">Loading items...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-500 py-12">Error: {error}</div>
+        ) : (
+          <InventoryTable
+            items={items}
+            sortConfig={sortConfig}
+            requestSort={requestSort}
+            onEdit={handleEditClick}
+            onDelete={handleDeleteItem}
+          />
+        )}
+      </div>
+
       <AddItemModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
