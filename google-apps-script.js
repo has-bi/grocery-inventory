@@ -2,19 +2,45 @@
  * BarangXLupa — Google Apps Script Web App
  *
  * Setup:
- * 1. Open Google Sheets, create a spreadsheet with two tabs: "Grocery" and "Health"
- * 2. Set up headers (row 1) for each sheet:
- *    Grocery:  _id | nama | kategori | jumlah | satuan | tanggal_kadaluarsa
- *    Health:   date | weight | exercise | meals_pagi | meals_siang | meals_sore | score | warnings
- * 3. In Google Sheets → Extensions → Apps Script, paste this code
- * 4. Replace SPREADSHEET_ID with your sheet's ID (from the URL)
+ * 1. Open your Google Sheet → Extensions → Apps Script
+ * 2. Paste this entire file, replacing what's there
+ * 3. The SPREADSHEET_ID is already filled in below
+ * 4. Click Run → setupSheets() once to create tabs + headers
  * 5. Deploy → New deployment → Web app
  *    - Execute as: Me
  *    - Who has access: Anyone
  * 6. Copy the Web App URL → set as APPS_SCRIPT_URL in Vercel env vars
  */
 
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID_HERE";
+const SPREADSHEET_ID = "1KeDvjqh_vf73zVw7xKlCAuAQYuXI-QKzsfOPrVkbYqk";
+
+/**
+ * Run this ONCE from the Apps Script editor to create both sheets with correct headers.
+ * After running, you'll see "Grocery" and "Health" tabs in your spreadsheet.
+ */
+function setupSheets() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+  const SHEETS = {
+    Grocery: ["_id", "nama", "kategori", "jumlah", "satuan", "tanggal_kadaluarsa"],
+    Health: ["date", "weight", "exercise", "meals_pagi", "meals_siang", "meals_sore", "score", "warnings"],
+  };
+
+  for (const [name, headers] of Object.entries(SHEETS)) {
+    let sheet = ss.getSheetByName(name);
+    if (!sheet) {
+      sheet = ss.insertSheet(name);
+    }
+    // Only write headers if row 1 is empty
+    if (sheet.getRange(1, 1).getValue() === "") {
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
+      sheet.setFrozenRows(1);
+    }
+  }
+
+  Logger.log("Setup complete. Sheets created: Grocery, Health");
+}
 
 function doGet(e) {
   try {
