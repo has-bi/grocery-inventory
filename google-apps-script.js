@@ -88,10 +88,14 @@ function getAllRows(sheetName) {
   if (data.length <= 1) return [];
 
   const headers = data[0];
+  const tz = Session.getScriptTimeZone();
   return data.slice(1).map((row) => {
     const obj = {};
     headers.forEach((h, i) => {
-      obj[h] = row[i];
+      const val = row[i];
+      obj[h] = val instanceof Date
+        ? Utilities.formatDate(val, tz, "yyyy-MM-dd")
+        : val;
     });
     return obj;
   });
@@ -157,8 +161,12 @@ function upsertHealthRow(payload) {
   const headers = data[0];
   const dateCol = headers.indexOf("date");
 
+  const tz = Session.getScriptTimeZone();
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][dateCol]) === String(payload.date)) {
+    const cellDate = data[i][dateCol] instanceof Date
+      ? Utilities.formatDate(data[i][dateCol], tz, "yyyy-MM-dd")
+      : String(data[i][dateCol]);
+    if (cellDate === String(payload.date)) {
       headers.forEach((h, j) => {
         if (payload[h] !== undefined) {
           sheet.getRange(i + 1, j + 1).setValue(payload[h]);

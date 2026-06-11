@@ -8,7 +8,7 @@ function safeJsonParse(str, fallback) {
 
 function deserializeHealthLog(row) {
   return {
-    date: row.date,
+    date: row.date ? String(row.date).slice(0, 10) : "",
     weight: row.weight || "",
     exercise: row.exercise === "true",
     meals: {
