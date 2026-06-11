@@ -14,7 +14,9 @@ const CATEGORIES = [
   "Lainnya",
 ];
 
-const UNITS = ["kg", "gram", "liter", "ml", "pcs", "bungkus", "botol", "kaleng", "sachet", "loyang"];
+const UNITS = ["kg", "gram", "liter", "ml", "pcs", "bungkus", "botol", "kaleng", "ikat", "butir", "sachet", "loyang"];
+
+const LOKASI = ["Kulkas", "Freezer", "Rak", "Lemari"];
 
 const FIELD = "w-full px-3 py-2.5 border border-gray-200 rounded-lg text-base sm:text-sm text-black focus:outline-none focus:border-black transition-colors bg-white";
 const LABEL = "block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5";
@@ -25,6 +27,7 @@ export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
     kategori: "",
     satuan: "",
     jumlah: "",
+    lokasi: "",
     tanggal_kadaluarsa: "",
   });
 
@@ -35,6 +38,7 @@ export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
         kategori: item.kategori || "",
         satuan: item.satuan || "",
         jumlah: item.jumlah || "",
+        lokasi: item.lokasi || "",
         tanggal_kadaluarsa: item.tanggal_kadaluarsa || "",
       });
     }
@@ -99,14 +103,29 @@ export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
             </div>
           </div>
 
-          <div>
-            <label className={LABEL}>Tanggal Kadaluarsa <span className="normal-case text-gray-400 font-normal">(opsional)</span></label>
-            <input
-              type="date"
-              value={formData.tanggal_kadaluarsa}
-              onChange={set("tanggal_kadaluarsa")}
-              className={FIELD}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL}>
+                Lokasi Simpan <span className="normal-case text-gray-400 font-normal">(opsional)</span>
+              </label>
+              <select value={formData.lokasi} onChange={set("lokasi")} className={FIELD}>
+                <option value="">-</option>
+                {LOKASI.map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={LABEL}>
+                Kadaluarsa <span className="normal-case text-gray-400 font-normal">(opsional)</span>
+              </label>
+              <input
+                type="date"
+                value={formData.tanggal_kadaluarsa}
+                onChange={set("tanggal_kadaluarsa")}
+                className={FIELD}
+              />
+            </div>
           </div>
         </ModalBody>
         <ModalFooter>

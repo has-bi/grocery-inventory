@@ -17,11 +17,15 @@ export default function Home() {
     error,
     searchQuery,
     setSearchQuery,
+    categoryFilter,
+    setCategoryFilter,
+    categories,
     sortConfig,
     requestSort,
     addItem,
     updateItem,
     deleteItem,
+    quickUpdate,
   } = useInventory();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -38,7 +42,7 @@ export default function Home() {
     if (result.success) {
       setIsAddModalOpen(false);
     } else {
-      alert("Failed to add item: " + result.error);
+      alert("Gagal menambah item: " + result.error);
     }
   };
 
@@ -49,16 +53,14 @@ export default function Home() {
       setIsEditModalOpen(false);
       setEditingItem(null);
     } else {
-      alert("Failed to update item: " + result.error);
+      alert("Gagal update item: " + result.error);
     }
   };
 
   const handleDeleteItem = async (id) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus item ini?")) {
-      const result = await deleteItem(id);
-      if (!result.success) {
-        alert("Failed to delete item: " + result.error);
-      }
+    const result = await deleteItem(id);
+    if (!result.success) {
+      alert("Gagal menghapus item: " + result.error);
     }
   };
 
@@ -87,7 +89,26 @@ export default function Home() {
         <InventoryStats items={allItems} />
       </div>
 
-      <div className="mb-5">
+      {/* Category filter pills */}
+      {categories.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategoryFilter(cat)}
+              className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                categoryFilter === cat
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="mb-4">
         <SearchInput
           placeholder="Cari barang atau kategori..."
           icon={<FiSearch className="text-gray-400" />}
@@ -111,6 +132,7 @@ export default function Home() {
             requestSort={requestSort}
             onEdit={handleEditClick}
             onDelete={handleDeleteItem}
+            onQuickUpdate={quickUpdate}
           />
         )}
       </div>

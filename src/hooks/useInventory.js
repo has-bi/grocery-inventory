@@ -6,6 +6,7 @@ export function useInventory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("Semua");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
   useEffect(() => {
@@ -27,7 +28,7 @@ export function useInventory() {
 
   const addItem = async (itemData) => {
     try {
-      await api.addItem(itemData);
+      await api.add(itemData);
       await fetchItems();
       return { success: true };
     } catch (err) {
@@ -37,7 +38,7 @@ export function useInventory() {
 
   const updateItem = async (id, itemData) => {
     try {
-      await api.updateItem(id, itemData);
+      await api.update(id, itemData);
       await fetchItems();
       return { success: true };
     } catch (err) {
@@ -47,11 +48,27 @@ export function useInventory() {
 
   const deleteItem = async (id) => {
     try {
-      await api.deleteItem(id);
+      await api.delete(id);
       await fetchItems();
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message };
+    }
+  };
+
+  const quickUpdate = async (id, newJumlah) => {
+    const clamped = Math.max(0, newJumlah);
+    // Optimistic update
+    setItems((prev) =>
+      prev.map((item) =>
+        item._id === id ? { ...item, jumlah: String(clamped) } : item
+      )
+    );
+    try {
+      await api.update(id, { jumlah: String(clamped) });
+    } catch (err) {
+      setError(err.message);
+      await fetchItems();
     }
   };
 
@@ -63,47 +80,56 @@ export function useInventory() {
     setSortConfig({ key, direction });
   };
 
+  const categories = useMemo(() => {
+    const cats = [...new Set(items.map((i) => i.kategori).filter(Boolean))].sort();
+    return ["Semua", ...cats];
+  }, [items]);
+
   const processedItems = useMemo(() => {
     let result = [...items];
 
-    // Filter
+    if (categoryFilter !== "Semua") {
+      result = result.filter((item) => item.kategori === categoryFilter);
+    }
+
     if (searchQuery) {
-      const lowerQuery = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase();
       result = result.filter(
         (item) =>
-          item.nama.toLowerCase().includes(lowerQuery) ||
-          item.kategori.toLowerCase().includes(lowerQuery)
+          item.nama?.toLowerCase().includes(q) ||
+          item.kategori?.toLowerCase().includes(q)
       );
     }
 
-    // Sort
     if (sortConfig.key) {
       result.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
+        if (a[sortConfig.key] < b[sortConfig.key])
           return sortConfig.direction === "asc" ? -1 : 1;
-        }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
+        if (a[sortConfig.key] > b[sortConfig.key])
           return sortConfig.direction === "asc" ? 1 : -1;
-        }
         return 0;
       });
     }
 
     return result;
-  }, [items, searchQuery, sortConfig]);
+  }, [items, searchQuery, categoryFilter, sortConfig]);
 
   return {
     items: processedItems,
-    allItems: items, // Useful for stats
+    allItems: items,
     loading,
     error,
     searchQuery,
     setSearchQuery,
+    categoryFilter,
+    setCategoryFilter,
+    categories,
     sortConfig,
     requestSort,
     addItem,
     updateItem,
     deleteItem,
+    quickUpdate,
     refresh: fetchItems,
   };
 }

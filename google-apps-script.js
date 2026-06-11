@@ -21,21 +21,35 @@ const SPREADSHEET_ID = "1KeDvjqh_vf73zVw7xKlCAuAQYuXI-QKzsfOPrVkbYqk";
 function setupSheets() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
-  const SHEETS = {
-    Grocery: ["_id", "nama", "kategori", "jumlah", "satuan", "tanggal_kadaluarsa"],
+  const SCHEMAS = {
+    Grocery: ["_id", "nama", "kategori", "jumlah", "satuan", "tanggal_kadaluarsa", "lokasi"],
     Health: ["date", "weight", "exercise", "meals_pagi", "meals_siang", "meals_sore", "score", "warnings"],
   };
 
-  for (const [name, headers] of Object.entries(SHEETS)) {
+  for (const [name, headers] of Object.entries(SCHEMAS)) {
     let sheet = ss.getSheetByName(name);
     if (!sheet) {
       sheet = ss.insertSheet(name);
     }
-    // Only write headers if row 1 is empty
-    if (sheet.getRange(1, 1).getValue() === "") {
+
+    const lastCol = sheet.getLastColumn();
+    const existingHeaders = lastCol > 0
+      ? sheet.getRange(1, 1, 1, lastCol).getValues()[0]
+      : [];
+
+    if (existingHeaders.length === 0) {
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
       sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
       sheet.setFrozenRows(1);
+    } else {
+      // Add any missing columns (e.g. lokasi added later)
+      headers.forEach((h) => {
+        if (!existingHeaders.includes(h)) {
+          const nextCol = sheet.getLastColumn() + 1;
+          sheet.getRange(1, nextCol).setValue(h);
+          sheet.getRange(1, nextCol).setFontWeight("bold");
+        }
+      });
     }
   }
 
