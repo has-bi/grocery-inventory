@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/Modal";
+import { FiCheck } from "react-icons/fi";
 
 const CATEGORIES = [
   "Sayuran", "Buah", "Daging & Ikan", "Telur & Susu",
@@ -17,20 +18,32 @@ const EMPTY = { nama: "", kategori: "", satuan: "", jumlah: "", lokasi: "", tang
 export default function AddItemModal({ isOpen, onClose, onSubmit, suggestions = [] }) {
   const [formData, setFormData] = useState(EMPTY);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
   const nameRef = useRef(null);
   const suggestionsRef = useRef(null);
 
   const set = (key) => (e) => setFormData((prev) => ({ ...prev, [key]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
-    setFormData(EMPTY);
+    setSubmitting(true);
+    const result = await onSubmit(formData);
+    setSubmitting(false);
+    if (result?.success) {
+      setSuccess(true);
+      setFormData(EMPTY);
+      setTimeout(() => {
+        setSuccess(false);
+        onClose();
+      }, 1500);
+    }
   };
 
   const handleClose = () => {
     setFormData(EMPTY);
     setShowSuggestions(false);
+    setSuccess(false);
     onClose();
   };
 
@@ -70,6 +83,22 @@ export default function AddItemModal({ isOpen, onClose, onSubmit, suggestions = 
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  if (success) {
+    return (
+      <Modal isOpen={isOpen} onClose={handleClose}>
+        <div className="flex flex-col items-center justify-center py-14 px-6 gap-4 text-center">
+          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+            <FiCheck size={30} className="text-green-700" />
+          </div>
+          <div>
+            <p className="text-base font-medium text-black">Item berhasil ditambahkan!</p>
+            <p className="text-sm text-gray-500 mt-1">Kembali ke daftar...</p>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
@@ -173,10 +202,10 @@ export default function AddItemModal({ isOpen, onClose, onSubmit, suggestions = 
           </button>
           <button
             type="submit"
-            disabled={!formData.nama || !formData.kategori || !formData.jumlah || !formData.satuan}
+            disabled={!formData.nama || !formData.kategori || !formData.jumlah || !formData.satuan || submitting}
             className="px-5 py-2.5 bg-black text-white text-sm rounded-lg hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            Tambah Item
+            {submitting ? "Menyimpan..." : "Tambah Item"}
           </button>
         </ModalFooter>
       </form>

@@ -39,8 +39,8 @@ export default function Home() {
 
   const handleAddItem = async (formData) => {
     const result = await addItem(formData);
-    if (result.success) setIsAddModalOpen(false);
-    else alert("Gagal menambah item: " + result.error);
+    if (!result.success) alert("Gagal menambah item: " + result.error);
+    return result;
   };
 
   const handleUpdateItem = async (formData) => {
