@@ -24,14 +24,14 @@ export default function MealBingo({ meals, onToggle }) {
               {Object.entries(FOOD_CATEGORIES).map(([catKey, cat]) => (
                 <div key={catKey}>
                   <p className="text-xs text-gray-400 mb-1.5">{cat.label}</p>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-2">
                     {cat.items.map((food) => {
                       const isSelected = selected.includes(food);
                       return (
                         <button
                           key={food}
                           onClick={() => onToggle(session.key, food)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${getFoodChipClass(
+                          className={`px-3.5 py-2 rounded-full text-sm font-medium border transition-all active:scale-95 ${getFoodChipClass(
                             food,
                             isSelected
                           )}`}

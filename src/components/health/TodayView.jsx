@@ -80,13 +80,26 @@ export default function TodayView() {
             <h3 className="text-sm font-medium text-gray-700 mb-3">Meal Log</h3>
             <MealBingo meals={todayEntry.meals} onToggle={toggleMeal} />
           </div>
-          <button
-            onClick={saveToday}
-            disabled={saving}
-            className="w-full py-3 bg-black text-white text-sm rounded-lg hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            {saving ? "Menyimpan..." : "Simpan Hari Ini"}
-          </button>
+
+          {/* Sticky save bar — clears the mobile bottom nav, hugs the bottom on desktop */}
+          <div className="sticky bottom-[5.5rem] sm:bottom-4 z-20 pt-2">
+            <button
+              onClick={saveToday}
+              disabled={saving}
+              className="w-full py-3.5 bg-black text-white text-sm font-medium rounded-xl shadow-lg shadow-black/15 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              {saving ? (
+                "Menyimpan..."
+              ) : (
+                <>
+                  Simpan Hari Ini
+                  <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">
+                    {score}
+                  </span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
 

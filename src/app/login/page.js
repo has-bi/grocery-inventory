@@ -52,7 +52,7 @@ export default function LoginPage() {
               placeholder="••••••••"
               required
               autoFocus
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black transition-colors"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-base sm:text-sm focus:outline-none focus:border-black transition-colors"
             />
           </div>
 

@@ -24,7 +24,7 @@ export default function InventoryStats({ items }) {
   );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-3 gap-2 sm:gap-4">
       <StatCard
         title="Total Barang"
         value={stats.totalItems}
@@ -51,12 +51,12 @@ export default function InventoryStats({ items }) {
 
 function StatCard({ title, value, icon, iconColor, alert }) {
   return (
-    <div className={`p-4 rounded-lg border ${alert ? "border-red-200 bg-red-50/50" : "border-gray-200 bg-white"}`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className={`${iconColor}`}>{icon}</span>
-        <span className="text-3xl font-light text-black">{value}</span>
+    <div className={`p-3 sm:p-4 rounded-lg border ${alert ? "border-red-200 bg-red-50/50" : "border-gray-200 bg-white"}`}>
+      <div className="flex items-center justify-between mb-1 sm:mb-2">
+        <span className={`${iconColor} [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-5 sm:[&>svg]:h-5`}>{icon}</span>
+        <span className="text-2xl sm:text-3xl font-light text-black">{value}</span>
       </div>
-      <p className="text-sm text-gray-500 font-medium">{title}</p>
+      <p className="text-xs sm:text-sm text-gray-500 font-medium">{title}</p>
     </div>
   );
 }

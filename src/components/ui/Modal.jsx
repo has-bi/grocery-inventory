@@ -2,9 +2,12 @@ export function Modal({ isOpen, onClose, children }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
       <div className="fixed inset-0 bg-black/30" onClick={onClose}></div>
-      <div className="relative bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl">
+      <div className="relative bg-white rounded-t-2xl sm:rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl pb-[env(safe-area-inset-bottom)]">
+        <div className="sm:hidden flex justify-center pt-2.5">
+          <div className="w-10 h-1 rounded-full bg-gray-300"></div>
+        </div>
         {children}
       </div>
     </div>

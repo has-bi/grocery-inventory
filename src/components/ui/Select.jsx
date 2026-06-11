@@ -17,7 +17,7 @@ export function Select({
         </label>
       )}
       <select
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:border-black transition-colors bg-white"
+        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-base sm:text-sm text-black focus:outline-none focus:border-black transition-colors bg-white"
         value={selectedValue}
         onChange={onChange}
         required={required}

@@ -15,7 +15,7 @@ export default function DailyInput({ weight, exercise, onWeightChange, onExercis
           placeholder="mis. 68.5"
           value={weight}
           onChange={(e) => onWeightChange(e.target.value)}
-          className="w-full sm:w-40 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black transition-colors"
+          className="w-full sm:w-40 px-3 py-2.5 border border-gray-200 rounded-lg text-base sm:text-sm focus:outline-none focus:border-black transition-colors"
         />
       </div>
 
@@ -26,7 +26,7 @@ export default function DailyInput({ weight, exercise, onWeightChange, onExercis
         <div className="flex gap-2">
           <button
             onClick={() => onExerciseChange(true)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+            className={`flex-1 sm:flex-none sm:px-8 py-2.5 rounded-lg text-sm font-medium border transition-colors active:scale-[0.98] ${
               exercise === true
                 ? "bg-black text-white border-black"
                 : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
@@ -36,7 +36,7 @@ export default function DailyInput({ weight, exercise, onWeightChange, onExercis
           </button>
           <button
             onClick={() => onExerciseChange(false)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+            className={`flex-1 sm:flex-none sm:px-8 py-2.5 rounded-lg text-sm font-medium border transition-colors active:scale-[0.98] ${
               exercise === false
                 ? "bg-gray-700 text-white border-gray-700"
                 : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"

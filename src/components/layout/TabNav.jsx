@@ -13,7 +13,7 @@ export default function TabNav() {
   if (pathname === "/login") return null;
 
   return (
-    <div className="flex -mb-px">
+    <div className="hidden sm:flex -mb-px">
       {TABS.map((tab) => {
         const isActive =
           tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);

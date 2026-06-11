@@ -25,7 +25,7 @@ export function Input({
       <input
         type={type}
         placeholder={labelPlacement === "inside" ? label || placeholder : placeholder}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
+        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-base sm:text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
         value={value}
         onChange={handleChange}
         required={required}

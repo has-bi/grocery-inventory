@@ -63,18 +63,20 @@ export default function Home() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-light text-black">Grocery</h2>
-            <p className="text-sm text-gray-400 mt-0.5">Pantau stok & kesegaran bahan makanan</p>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex justify-between items-center gap-3 mb-5 sm:mb-6">
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl font-light text-black">Grocery</h2>
+            <p className="text-xs sm:text-sm text-gray-400 mt-0.5 truncate">
+              Pantau stok & kesegaran bahan makanan
+            </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2 shrink-0">
             <NotificationButton />
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2 text-sm"
+              className="px-3.5 sm:px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-1.5 text-sm"
             >
               <FiPlus size={16} />
               Tambah
