@@ -78,41 +78,6 @@ export const groceryApi = {
   },
 };
 
-export const catalogApi = {
-  async getAll() {
-    const res = await fetch("/api/sheets/catalog");
-    if (!res.ok) throw new Error("Failed to fetch catalog");
-    return res.json();
-  },
-
-  async add(payload) {
-    const res = await fetch("/api/sheets/catalog", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "add", payload }),
-    });
-    return res.json();
-  },
-
-  async update(id, payload) {
-    const res = await fetch("/api/sheets/catalog", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "update", id, payload }),
-    });
-    return res.json();
-  },
-
-  async delete(id) {
-    const res = await fetch("/api/sheets/catalog", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "delete", id }),
-    });
-    return res.json();
-  },
-};
-
 export const healthApi = {
   async getAll() {
     const res = await fetch("/api/sheets/health");
