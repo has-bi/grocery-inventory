@@ -1,7 +1,23 @@
 import { useState, useEffect } from "react";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/Modal";
-import { Input } from "@/components/ui/Input";
-import { Select, SelectItem } from "@/components/ui/Select";
+
+const CATEGORIES = [
+  "Sayuran",
+  "Buah",
+  "Daging & Ikan",
+  "Telur & Susu",
+  "Bahan Masakan",
+  "Bumbu & Rempah",
+  "Minuman",
+  "Frozen & Olahan",
+  "Snack & Camilan",
+  "Lainnya",
+];
+
+const UNITS = ["kg", "gram", "liter", "ml", "pcs", "bungkus", "botol", "kaleng", "sachet", "loyang"];
+
+const FIELD = "w-full px-3 py-2.5 border border-gray-200 rounded-lg text-base sm:text-sm text-black focus:outline-none focus:border-black transition-colors bg-white";
+const LABEL = "block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5";
 
 export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
   const [formData, setFormData] = useState({
@@ -24,95 +40,84 @@ export default function EditItemModal({ isOpen, onClose, onSubmit, item }) {
     }
   }, [item]);
 
+  const set = (key) => (e) => setFormData((prev) => ({ ...prev, [key]: e.target.value }));
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
   };
-
-  const categories = [
-    { key: "Buah", label: "Buah" },
-    { key: "Sayuran", label: "Sayuran" },
-    { key: "Daging", label: "Daging" },
-    { key: "Susu", label: "Susu" },
-    { key: "Bahan Makanan", label: "Bahan Makanan" },
-  ];
-
-  const units = [
-    { key: "kilogram", label: "Kilogram" },
-    { key: "gram", label: "Gram" },
-    { key: "liter", label: "Liter" },
-    { key: "mililiter", label: "Mililiter" },
-    { key: "pcs", label: "Pcs" },
-  ];
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <form onSubmit={handleSubmit}>
         <ModalHeader>Edit Item</ModalHeader>
         <ModalBody>
-          <Input
-            label="Nama Item"
-            placeholder="Contoh: Apel Malang"
-            value={formData.nama}
-            onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-            required
-          />
-          <Select
-            label="Kategori"
-            placeholder="Pilih kategori"
-            selectedKeys={formData.kategori ? [formData.kategori] : []}
-            onChange={(e) => setFormData({ ...formData, kategori: e.target.value })}
-            required
-          >
-            {categories.map((cat) => (
-              <SelectItem key={cat.key} value={cat.key}>
-                {cat.label}
-              </SelectItem>
-            ))}
-          </Select>
-          <div className="flex gap-4">
-            <Input
-              type="number"
-              label="Jumlah"
-              placeholder="0"
-              min="0"
-              value={formData.jumlah}
-              onChange={(e) => setFormData({ ...formData, jumlah: e.target.value })}
+          <div>
+            <label className={LABEL}>Nama Item</label>
+            <input
+              type="text"
+              placeholder="Contoh: Ayam Kampung"
+              value={formData.nama}
+              onChange={set("nama")}
               required
-              className="flex-1"
-              labelPlacement="outside"
+              className={FIELD}
             />
-            <Select
-              label="Satuan"
-              placeholder="Satuan"
-              selectedKeys={formData.satuan ? [formData.satuan] : []}
-              onChange={(e) => setFormData({ ...formData, satuan: e.target.value })}
-              required
-              className="flex-1"
-            >
-              {units.map((unit) => (
-                <SelectItem key={unit.key} value={unit.key}>
-                  {unit.label}
-                </SelectItem>
-              ))}
-            </Select>
           </div>
-          <Input
-            type="date"
-            label="Tanggal Kadaluarsa"
-            placeholder="Pilih tanggal"
-            value={formData.tanggal_kadaluarsa}
-            onChange={(e) =>
-              setFormData({ ...formData, tanggal_kadaluarsa: e.target.value })
-            }
-            labelPlacement="outside"
-          />
+
+          <div>
+            <label className={LABEL}>Kategori</label>
+            <select value={formData.kategori} onChange={set("kategori")} required className={FIELD}>
+              <option value="" disabled>Pilih kategori...</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL}>Jumlah</label>
+              <input
+                type="number"
+                placeholder="0"
+                min="0"
+                step="any"
+                value={formData.jumlah}
+                onChange={set("jumlah")}
+                required
+                className={FIELD}
+              />
+            </div>
+            <div>
+              <label className={LABEL}>Satuan</label>
+              <select value={formData.satuan} onChange={set("satuan")} required className={FIELD}>
+                <option value="" disabled>Pilih...</option>
+                {UNITS.map((u) => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className={LABEL}>Tanggal Kadaluarsa <span className="normal-case text-gray-400 font-normal">(opsional)</span></label>
+            <input
+              type="date"
+              value={formData.tanggal_kadaluarsa}
+              onChange={set("tanggal_kadaluarsa")}
+              className={FIELD}
+            />
+          </div>
         </ModalBody>
         <ModalFooter>
-          <button type="button" className="px-4 py-2 text-gray-600 hover:text-black transition-colors" onClick={onClose}>
+          <button type="button" onClick={onClose} className="px-4 py-2.5 text-sm text-gray-600 hover:text-black transition-colors">
             Batal
           </button>
-          <button type="submit" className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors">
+          <button
+            type="submit"
+            disabled={!formData.nama || !formData.kategori || !formData.jumlah || !formData.satuan}
+            className="px-5 py-2.5 bg-black text-white text-sm rounded-lg hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
             Simpan Perubahan
           </button>
         </ModalFooter>

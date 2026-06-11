@@ -2,7 +2,7 @@
 export const FOOD_CATEGORIES = {
   protein: {
     label: "Protein",
-    items: ["Telur", "Ayam", "Ikan", "Tahu", "Tempe"],
+    items: ["Telur", "Ayam", "Ayam Sambal Ijo", "Ikan", "Tahu", "Tempe"],
     chipClass: "bg-green-100 text-green-800 border-green-300",
     activeClass: "bg-green-800 text-white border-green-800",
   },
@@ -20,13 +20,19 @@ export const FOOD_CATEGORIES = {
   },
   other: {
     label: "Lainnya",
-    items: ["Nasi Putih", "Roti"],
+    items: ["Nasi Putih", "Nasi Padang", "Roti", "Selai Kacang"],
     chipClass: "bg-gray-100 text-gray-700 border-gray-300",
     activeClass: "bg-gray-700 text-white border-gray-700",
   },
+  minuman: {
+    label: "Minuman",
+    items: ["Kopi Hitam", "Air Putih", "Teh"],
+    chipClass: "bg-amber-100 text-amber-800 border-amber-300",
+    activeClass: "bg-amber-700 text-white border-amber-700",
+  },
   watch: {
     label: "Watch",
-    items: ["Mie Instan", "Gorengan", "Minuman Manis", "Snack Kemasan"],
+    items: ["Mie Instan", "Gorengan", "Kue Manis", "Minuman Manis", "Snack Kemasan"],
     chipClass: "bg-orange-100 text-orange-800 border-orange-300",
     activeClass: "bg-orange-700 text-white border-orange-700",
   },
