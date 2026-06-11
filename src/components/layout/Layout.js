@@ -28,7 +28,7 @@ export default function Layout({ children }) {
       <main className="pb-24 sm:pb-0">{children}</main>
 
       <footer className="hidden sm:block border-t border-gray-200 py-6 mt-12">
-        <div className="max-w-6xl mx-auto px-6 text-center text-xs text-gray-400">
+        <div className="max-w-6xl mx-auto px-6 text-center text-xs text-gray-500">
           <p>© 2026 BarangXLupa · Household App by Hasbi</p>
         </div>
       </footer>

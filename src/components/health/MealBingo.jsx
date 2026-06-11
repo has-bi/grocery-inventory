@@ -16,14 +16,14 @@ export default function MealBingo({ meals, onToggle }) {
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-medium text-gray-700">{session.label}</h3>
               {selected.length > 0 && (
-                <span className="text-xs text-gray-400">{selected.length} dipilih</span>
+                <span className="text-xs text-gray-500">{selected.length} dipilih</span>
               )}
             </div>
 
             <div className="space-y-3">
               {Object.entries(FOOD_CATEGORIES).map(([catKey, cat]) => (
                 <div key={catKey}>
-                  <p className="text-xs text-gray-400 mb-1.5">{cat.label}</p>
+                  <p className="text-xs text-gray-500 mb-1.5">{cat.label}</p>
                   <div className="flex flex-wrap gap-2">
                     {cat.items.map((food) => {
                       const isSelected = selected.includes(food);
@@ -31,6 +31,7 @@ export default function MealBingo({ meals, onToggle }) {
                         <button
                           key={food}
                           onClick={() => onToggle(session.key, food)}
+                          aria-pressed={isSelected}
                           className={`px-3.5 py-2 rounded-full text-sm font-medium border transition-all active:scale-95 ${getFoodChipClass(
                             food,
                             isSelected

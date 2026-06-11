@@ -26,7 +26,8 @@ export default function NotificationButton() {
       className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors text-gray-600 hover:text-black"
       onClick={handleNotify}
       disabled={loading}
-      title="Test Telegram Notification"
+      title="Kirim notifikasi Telegram"
+      aria-label="Kirim notifikasi Telegram"
     >
       {loading ? (
         <span className="loading loading-spinner loading-xs"></span>

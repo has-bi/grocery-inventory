@@ -21,17 +21,17 @@ export default function HistoryView({ logs }) {
         </div>
 
         {sorted.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-400">
+          <div className="py-12 text-center text-sm text-gray-500">
             Belum ada data. Mulai log hari ini!
           </div>
         ) : (
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="text-left py-2.5 px-5 text-xs font-medium text-gray-400 uppercase tracking-wider">Tanggal</th>
-                <th className="text-left py-2.5 px-4 text-xs font-medium text-gray-400 uppercase tracking-wider">Berat</th>
-                <th className="text-left py-2.5 px-4 text-xs font-medium text-gray-400 uppercase tracking-wider">Olahraga</th>
-                <th className="text-right py-2.5 px-5 text-xs font-medium text-gray-400 uppercase tracking-wider">Score</th>
+                <th className="text-left py-2.5 px-5 text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                <th className="text-left py-2.5 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Berat</th>
+                <th className="text-left py-2.5 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Olahraga</th>
+                <th className="text-right py-2.5 px-5 text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
               </tr>
             </thead>
             <tbody>
@@ -52,13 +52,13 @@ export default function HistoryView({ logs }) {
                       {log.weight ? `${log.weight} kg` : "—"}
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${log.exercise ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${log.exercise ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
                         {log.exercise ? "Ya" : "Skip"}
                       </span>
                     </td>
                     <td className="py-3 px-5 text-right">
                       <span className={`text-sm font-medium ${text}`}>{log.score}</span>
-                      <span className="text-xs text-gray-400 ml-1">/ 100</span>
+                      <span className="text-xs text-gray-500 ml-1">/ 100</span>
                     </td>
                   </tr>
                 );

@@ -29,6 +29,7 @@ export function SearchInput({
           type="button"
           className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-black transition-colors"
           onClick={handleClear}
+          aria-label="Hapus pencarian"
         >
           <FiX />
         </button>

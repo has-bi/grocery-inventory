@@ -32,13 +32,15 @@ function ActionButtons({ item, onEdit, onDelete }) {
         className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-black"
         onClick={() => onEdit(item)}
         title="Edit"
+        aria-label={`Edit ${item.nama}`}
       >
         <FiEdit2 size={16} />
       </button>
       <button
         className="p-2.5 hover:bg-red-50 rounded-lg transition-colors text-gray-500 hover:text-red-600"
         onClick={() => onDelete(item._id)}
-        title="Delete"
+        title="Hapus"
+        aria-label={`Hapus ${item.nama}`}
       >
         <FiTrash2 size={16} />
       </button>
@@ -55,7 +57,7 @@ export default function InventoryTable({
 }) {
   if (items.length === 0) {
     return (
-      <div className="text-center text-gray-400 py-12 text-sm">
+      <div className="text-center text-gray-500 py-12 text-sm">
         Tidak ada barang.
       </div>
     );
@@ -69,7 +71,7 @@ export default function InventoryTable({
           <li key={item._id} className="flex items-center gap-3 px-4 py-3">
             <div className="flex-1 min-w-0">
               <p className="text-sm text-black truncate">{item.nama}</p>
-              <p className="text-xs text-gray-400 capitalize mt-0.5">
+              <p className="text-xs text-gray-500 capitalize mt-0.5">
                 {item.kategori} · {item.jumlah} {item.satuan}
               </p>
               <div className="mt-1.5">
@@ -118,7 +120,7 @@ export default function InventoryTable({
                 <td className="py-4 px-4">
                   <div className="flex flex-col gap-1">
                     <p className="text-sm text-black">{item.nama}</p>
-                    <p className="text-xs text-gray-400 capitalize">{item.kategori}</p>
+                    <p className="text-xs text-gray-500 capitalize">{item.kategori}</p>
                   </div>
                 </td>
                 <td className="py-4 px-4">

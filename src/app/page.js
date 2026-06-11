@@ -68,7 +68,7 @@ export default function Home() {
         <div className="flex justify-between items-center gap-3 mb-5 sm:mb-6">
           <div className="min-w-0">
             <h2 className="text-xl sm:text-2xl font-light text-black">Grocery</h2>
-            <p className="text-xs sm:text-sm text-gray-400 mt-0.5 truncate">
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5 truncate">
               Pantau stok & kesegaran bahan makanan
             </p>
           </div>
@@ -103,7 +103,7 @@ export default function Home() {
             <p className="text-sm text-gray-500">Loading items...</p>
           </div>
         ) : error ? (
-          <div className="text-center text-red-500 py-12">Error: {error}</div>
+          <div className="text-center text-red-600 py-12">Error: {error}</div>
         ) : (
           <InventoryTable
             items={items}

@@ -26,6 +26,7 @@ export default function DailyInput({ weight, exercise, onWeightChange, onExercis
         <div className="flex gap-2">
           <button
             onClick={() => onExerciseChange(true)}
+            aria-pressed={exercise === true}
             className={`flex-1 sm:flex-none sm:px-8 py-2.5 rounded-lg text-sm font-medium border transition-colors active:scale-[0.98] ${
               exercise === true
                 ? "bg-black text-white border-black"
@@ -36,6 +37,7 @@ export default function DailyInput({ weight, exercise, onWeightChange, onExercis
           </button>
           <button
             onClick={() => onExerciseChange(false)}
+            aria-pressed={exercise === false}
             className={`flex-1 sm:flex-none sm:px-8 py-2.5 rounded-lg text-sm font-medium border transition-colors active:scale-[0.98] ${
               exercise === false
                 ? "bg-gray-700 text-white border-gray-700"

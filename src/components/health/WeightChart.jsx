@@ -11,7 +11,7 @@ export default function WeightChart({ logs }) {
 
   if (dataPoints.length < 2) {
     return (
-      <div className="flex items-center justify-center h-24 text-sm text-gray-400">
+      <div className="flex items-center justify-center h-24 text-sm text-gray-500">
         Data berat belum cukup untuk ditampilkan
       </div>
     );
@@ -55,10 +55,10 @@ export default function WeightChart({ logs }) {
         </svg>
         <div className="text-right shrink-0">
           <p className="text-lg font-light text-black">{pts[pts.length - 1].weight} kg</p>
-          <p className="text-xs text-gray-400">terakhir</p>
+          <p className="text-xs text-gray-500">terakhir</p>
         </div>
       </div>
-      <div className="flex justify-between text-xs text-gray-400 mt-1">
+      <div className="flex justify-between text-xs text-gray-500 mt-1">
         <span>{pts[0].date.slice(5)}</span>
         <span>{pts[pts.length - 1].date.slice(5)}</span>
       </div>

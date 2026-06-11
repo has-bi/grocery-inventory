@@ -2,20 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* App is light-mode only by design — components are styled on white surfaces.
+   color-scheme keeps native controls (date pickers, selects) rendering light too. */
 :root {
   --background: #ffffff;
-  --foreground: #000000;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --foreground: #111827;
+  color-scheme: light;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: plusjakartasans, sans-serif;
+}
+
+/* Visible focus for keyboard navigation (WCAG 2.4.7) without affecting mouse/touch */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #111827;
+  outline-offset: 2px;
+  border-radius: 4px;
 }

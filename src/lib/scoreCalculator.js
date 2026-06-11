@@ -30,8 +30,9 @@ export function calculateScore(entry, warnings) {
   return Math.max(0, Math.min(100, score));
 }
 
+// Text shades are -700 so small labels pass WCAG AA on white; bars stay vivid (non-text)
 export function getScoreColor(score) {
-  if (score >= 70) return { text: "text-green-600", bg: "bg-green-600", label: "Bagus" };
-  if (score >= 40) return { text: "text-yellow-600", bg: "bg-yellow-500", label: "Lumayan" };
-  return { text: "text-red-600", bg: "bg-red-500", label: "Perlu Diperbaiki" };
+  if (score >= 70) return { text: "text-emerald-700", bg: "bg-emerald-500", label: "Bagus" };
+  if (score >= 40) return { text: "text-amber-700", bg: "bg-amber-500", label: "Lumayan" };
+  return { text: "text-red-700", bg: "bg-red-500", label: "Perlu Diperbaiki" };
 }

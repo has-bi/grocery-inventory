@@ -8,7 +8,14 @@ export default function ScoreCard({ score }) {
       <div className={`text-5xl font-light ${text}`}>{score}</div>
       <div className="flex-1">
         <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Score Hari Ini</p>
-        <div className="w-full bg-gray-100 rounded-full h-2">
+        <div
+          className="w-full bg-gray-100 rounded-full h-2"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={score}
+          aria-label="Score hari ini"
+        >
           <div
             className={`h-2 rounded-full transition-all duration-500 ${bg}`}
             style={{ width: `${score}%` }}

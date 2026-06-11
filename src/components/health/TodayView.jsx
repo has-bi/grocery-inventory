@@ -46,7 +46,7 @@ export default function TodayView() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-light text-black">Intermitten</h2>
-          <p className="text-sm text-gray-400 mt-0.5">
+          <p className="text-sm text-gray-500 mt-0.5">
             {new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
@@ -58,7 +58,7 @@ export default function TodayView() {
             key={t.key}
             onClick={() => setTab(t.key)}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === t.key ? "border-black text-black" : "border-transparent text-gray-400 hover:text-black"
+              tab === t.key ? "border-black text-black" : "border-transparent text-gray-500 hover:text-black"
             }`}
           >
             {t.label}
