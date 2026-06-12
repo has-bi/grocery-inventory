@@ -6,20 +6,53 @@ import ScoreCard from "./ScoreCard";
 import WarningBanner from "./WarningBanner";
 import HistoryView from "./HistoryView";
 import { useState } from "react";
+import { FiCheck } from "react-icons/fi";
+
+function SaveIndicator({ saveStatus, lastSavedTime }) {
+  if (!saveStatus) return null;
+
+  if (saveStatus === "pending") {
+    return (
+      <span className="text-xs text-gray-400 flex items-center gap-1">
+        <span className="inline-flex gap-0.5">
+          <span className="w-1 h-1 rounded-full bg-gray-400 animate-bounce [animation-delay:0ms]" />
+          <span className="w-1 h-1 rounded-full bg-gray-400 animate-bounce [animation-delay:150ms]" />
+          <span className="w-1 h-1 rounded-full bg-gray-400 animate-bounce [animation-delay:300ms]" />
+        </span>
+      </span>
+    );
+  }
+
+  if (saveStatus === "saving") {
+    return <span className="text-xs text-gray-400">Menyimpan...</span>;
+  }
+
+  if (saveStatus === "saved" && lastSavedTime) {
+    const time = lastSavedTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    return (
+      <span className="text-xs text-green-600 flex items-center gap-1">
+        <FiCheck size={11} />
+        Tersimpan {time}
+      </span>
+    );
+  }
+
+  return null;
+}
 
 export default function TodayView() {
   const {
     loading,
-    saving,
     error,
     todayEntry,
     historyLogs,
     warnings,
     score,
+    saveStatus,
+    lastSavedTime,
     toggleMeal,
     setWeight,
     setExercise,
-    saveToday,
   } = useHealthTracker();
 
   const [tab, setTab] = useState("today");
@@ -50,6 +83,7 @@ export default function TodayView() {
             {new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
+        <SaveIndicator saveStatus={saveStatus} lastSavedTime={lastSavedTime} />
       </div>
 
       <div className="flex gap-0 border-b border-gray-200 mb-6">
@@ -79,26 +113,6 @@ export default function TodayView() {
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-3">Meal Log</h3>
             <MealBingo meals={todayEntry.meals} onToggle={toggleMeal} />
-          </div>
-
-          {/* Sticky save bar — clears the mobile bottom nav, hugs the bottom on desktop */}
-          <div className="sticky bottom-[5.5rem] sm:bottom-4 z-20 pt-2">
-            <button
-              onClick={saveToday}
-              disabled={saving}
-              className="w-full py-3.5 bg-black text-white text-sm font-medium rounded-xl shadow-lg shadow-black/15 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-            >
-              {saving ? (
-                "Menyimpan..."
-              ) : (
-                <>
-                  Simpan Hari Ini
-                  <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">
-                    {score}
-                  </span>
-                </>
-              )}
-            </button>
           </div>
         </div>
       )}
