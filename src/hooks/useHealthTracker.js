@@ -119,6 +119,30 @@ export function useHealthTracker() {
     };
   }, [changeCount]);
 
+  const streak = useMemo(() => {
+    const todayHasData =
+      !!todayEntry.weight ||
+      !!todayEntry.exercise ||
+      Object.values(todayEntry.meals || {}).some((m) => m.length > 0);
+
+    let count = todayHasData ? 1 : 0;
+
+    for (let i = 0; i < historyLogs.length; i++) {
+      const expected = new Date(today);
+      expected.setDate(expected.getDate() - (i + 1));
+      const y = expected.getFullYear();
+      const mo = String(expected.getMonth() + 1).padStart(2, "0");
+      const d = String(expected.getDate()).padStart(2, "0");
+      if (historyLogs[i]?.date === `${y}-${mo}-${d}`) {
+        count++;
+      } else {
+        break;
+      }
+    }
+
+    return count;
+  }, [historyLogs, today, todayEntry]);
+
   const bump = () => setChangeCount((c) => c + 1);
 
   const toggleMeal = (session, food) => {
@@ -142,6 +166,7 @@ export function useHealthTracker() {
     historyLogs,
     warnings,
     score,
+    streak,
     saveStatus,
     lastSavedTime,
     toggleMeal,

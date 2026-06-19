@@ -19,21 +19,27 @@ function LokasiTag({ lokasi }) {
   );
 }
 
+function getExpiryStatus(date) {
+  if (!date) return null;
+  const expiry = new Date(date);
+  const today = new Date();
+  const threeDays = new Date();
+  const fiveDays = new Date();
+  threeDays.setDate(today.getDate() + 3);
+  fiveDays.setDate(today.getDate() + 5);
+  if (expiry < today) return "expired";
+  if (expiry <= threeDays) return "urgent";
+  if (expiry <= fiveDays) return "soon";
+  return null;
+}
+
 function ExpiryBadge({ date }) {
   if (!date) return <span className="text-gray-400 text-sm">-</span>;
 
-  const expiry = new Date(date);
-  const today = new Date();
-  const fiveDays = new Date();
-  fiveDays.setDate(today.getDate() + 5);
-
-  const isExpired = expiry < today;
-  const isSoon = !isExpired && expiry <= fiveDays;
-
-  const cls = isExpired
-    ? "bg-red-100 text-red-700"
-    : isSoon
-    ? "bg-orange-100 text-orange-700"
+  const status = getExpiryStatus(date);
+  const cls =
+    status === "expired" ? "bg-red-100 text-red-700"
+    : status === "urgent" || status === "soon" ? "bg-orange-100 text-orange-700"
     : "bg-gray-100 text-gray-700";
 
   return (
@@ -113,9 +119,14 @@ export default function InventoryTable({ items, sortConfig, requestSort, onDelet
           <li key={item._id} className="px-4 py-3 space-y-2.5">
             {/* Row 1: name + actions */}
             <div className="flex items-start justify-between gap-2">
-              <p className="text-sm text-black font-medium leading-snug truncate flex-1">
-                {item.nama}
-              </p>
+              <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+                <p className="text-sm text-black font-medium leading-snug truncate">
+                  {item.nama}
+                </p>
+                {getExpiryStatus(item.tanggal_kadaluarsa) === "urgent" && (
+                  <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shrink-0">Segera Pakai</span>
+                )}
+              </div>
               {confirmId === item._id ? (
                 <DeleteConfirm
                   item={item}
@@ -191,7 +202,12 @@ export default function InventoryTable({ items, sortConfig, requestSort, onDelet
                 className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
               >
                 <td className="py-3.5 px-4">
-                  <p className="text-sm text-black">{item.nama}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-black">{item.nama}</p>
+                    {getExpiryStatus(item.tanggal_kadaluarsa) === "urgent" && (
+                      <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shrink-0">Segera Pakai</span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500 capitalize mt-0.5">{item.kategori}</p>
                 </td>
                 <td className="py-3.5 px-4">
