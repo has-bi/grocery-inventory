@@ -5,7 +5,11 @@ import { runRuleEngine } from "@/lib/ruleEngine";
 import { calculateScore } from "@/lib/scoreCalculator";
 
 function getTodayDate() {
-  return new Date().toISOString().split("T")[0];
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 const EMPTY_ENTRY = {
@@ -77,16 +81,23 @@ export function useHealthTracker() {
   warningsRef.current = warnings;
 
   doSaveRef.current = async () => {
+    const snapshot = {
+      ...todayEntryRef.current,
+      score: scoreRef.current,
+      warnings: warningsRef.current,
+    };
     setSaveStatus("saving");
     try {
-      await healthApi.upsert({
-        ...todayEntryRef.current,
-        score: scoreRef.current,
-        warnings: warningsRef.current,
+      await healthApi.upsert(snapshot);
+      setLogs((prev) => {
+        const idx = prev.findIndex((l) => l.date === snapshot.date);
+        return idx >= 0
+          ? prev.map((l, i) => (i === idx ? snapshot : l))
+          : [...prev, snapshot];
       });
-      await fetchLogs();
       setSaveStatus("saved");
       setLastSavedTime(new Date());
+      setTimeout(() => setSaveStatus(null), 3000);
     } catch (err) {
       setError(err.message);
       setSaveStatus(null);
