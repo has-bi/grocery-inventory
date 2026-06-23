@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { healthApi } from "@/actions/sheets";
 import { runRuleEngine } from "@/lib/ruleEngine";
 import { calculateScore } from "@/lib/scoreCalculator";
+import { getMealSession } from "@/lib/getMealSession";
 
 function getTodayDate() {
   const d = new Date();
@@ -145,14 +146,29 @@ export function useHealthTracker() {
 
   const bump = () => setChangeCount((c) => c + 1);
 
-  const toggleMeal = (session, food) => {
+  const toggleMeal = (food) => {
     bump();
     setTodayEntry((prev) => {
-      const current = prev.meals[session];
-      const updated = current.includes(food)
-        ? current.filter((f) => f !== food)
-        : [...current, food];
-      return { ...prev, meals: { ...prev.meals, [session]: updated } };
+      const sessions = ["pagi", "siang", "sore"];
+      for (const session of sessions) {
+        if ((prev.meals[session] || []).includes(food)) {
+          return {
+            ...prev,
+            meals: {
+              ...prev.meals,
+              [session]: prev.meals[session].filter((f) => f !== food),
+            },
+          };
+        }
+      }
+      const session = getMealSession();
+      return {
+        ...prev,
+        meals: {
+          ...prev.meals,
+          [session]: [...(prev.meals[session] || []), food],
+        },
+      };
     });
   };
 
