@@ -78,6 +78,86 @@ export const groceryApi = {
   },
 };
 
+function deserializeTask(row) {
+  return {
+    ...row,
+    active: String(row.active) === "true",
+    lastDone: row.lastDone ? String(row.lastDone).slice(0, 10) : "",
+    deadline: row.deadline ? String(row.deadline).slice(0, 10) : "",
+    createdAt: row.createdAt ? String(row.createdAt).slice(0, 10) : "",
+    dayOfWeek: row.dayOfWeek || "[]",
+    interval: row.interval ? String(row.interval) : "",
+  };
+}
+
+function deserializeTaskLog(row) {
+  return {
+    ...row,
+    completedDate: row.completedDate ? String(row.completedDate).slice(0, 10) : "",
+  };
+}
+
+export const tasksApi = {
+  async getAll() {
+    const res = await fetch("/api/sheets/tasks");
+    if (!res.ok) throw new Error("Failed to fetch tasks");
+    const rows = await res.json();
+    return rows.map(deserializeTask);
+  },
+
+  async getLogs() {
+    const res = await fetch("/api/sheets/tasks?type=logs");
+    if (!res.ok) throw new Error("Failed to fetch task logs");
+    const rows = await res.json();
+    return rows.map(deserializeTaskLog);
+  },
+
+  async add(payload) {
+    const res = await fetch("/api/sheets/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "add", sheet: "Tasks", payload }),
+    });
+    return res.json();
+  },
+
+  async update(id, payload) {
+    const res = await fetch("/api/sheets/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "update", sheet: "Tasks", id, payload }),
+    });
+    return res.json();
+  },
+
+  async delete(id) {
+    const res = await fetch("/api/sheets/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", sheet: "Tasks", id }),
+    });
+    return res.json();
+  },
+
+  async complete(taskId, completedDate) {
+    const res = await fetch("/api/sheets/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "completeTask", payload: { taskId, completedDate } }),
+    });
+    return res.json();
+  },
+
+  async uncomplete(taskId, completedDate) {
+    const res = await fetch("/api/sheets/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "uncompleteTask", payload: { taskId, completedDate } }),
+    });
+    return res.json();
+  },
+};
+
 export const healthApi = {
   async getAll() {
     const res = await fetch("/api/sheets/health");
