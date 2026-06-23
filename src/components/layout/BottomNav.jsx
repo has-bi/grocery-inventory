@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiShoppingCart, FiActivity } from "react-icons/fi";
+import { FiShoppingCart, FiActivity, FiCheckSquare } from "react-icons/fi";
 
 const TABS = [
   { label: "Grocery", href: "/", icon: FiShoppingCart },
+  { label: "Tasks", href: "/tasks", icon: FiCheckSquare },
   { label: "Intermitten", href: "/health", icon: FiActivity },
 ];
 

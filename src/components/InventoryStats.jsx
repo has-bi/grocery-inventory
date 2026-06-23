@@ -1,6 +1,10 @@
 import { FiPackage, FiAlertCircle, FiClock, FiTrendingDown } from "react-icons/fi";
 
 export default function InventoryStats({ items }) {
+  const today = new Date();
+  const fiveDaysFromNow = new Date();
+  fiveDaysFromNow.setDate(today.getDate() + 5);
+
   const stats = items.reduce(
     (acc, item) => {
       acc.totalItems += 1;
@@ -9,14 +13,10 @@ export default function InventoryStats({ items }) {
       if (!isNaN(qty) && qty <= 1) acc.lowStock += 1;
 
       if (item.tanggal_kadaluarsa) {
-        const expiryDate = new Date(item.tanggal_kadaluarsa);
-        const today = new Date();
-        const fiveDaysFromNow = new Date();
-        fiveDaysFromNow.setDate(today.getDate() + 5);
-
-        if (expiryDate < today) {
+        const expiry = new Date(item.tanggal_kadaluarsa);
+        if (expiry < today) {
           acc.expired += 1;
-        } else if (expiryDate <= fiveDaysFromNow) {
+        } else if (expiry <= fiveDaysFromNow) {
           acc.expiringSoon += 1;
         }
       }

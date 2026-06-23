@@ -48,6 +48,7 @@ export default function TodayView() {
     historyLogs,
     warnings,
     score,
+    streak,
     saveStatus,
     lastSavedTime,
     toggleMeal,
@@ -83,7 +84,15 @@ export default function TodayView() {
             {new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
-        <SaveIndicator saveStatus={saveStatus} lastSavedTime={lastSavedTime} />
+        <div className="flex items-center gap-3">
+          {streak > 0 && (
+            <div className="text-right">
+              <p className="text-lg font-light text-amber-600 leading-none">{streak}</p>
+              <p className="text-xs text-gray-400 mt-0.5">hari streak</p>
+            </div>
+          )}
+          <SaveIndicator saveStatus={saveStatus} lastSavedTime={lastSavedTime} />
+        </div>
       </div>
 
       <div className="flex gap-0 border-b border-gray-200 mb-6">
@@ -103,7 +112,7 @@ export default function TodayView() {
       {tab === "today" && (
         <div className="space-y-4">
           <WarningBanner warnings={warnings} />
-          <ScoreCard score={score} />
+          <ScoreCard score={score} entry={todayEntry} warnings={warnings} />
           <DailyInput
             weight={todayEntry.weight}
             exercise={todayEntry.exercise}
