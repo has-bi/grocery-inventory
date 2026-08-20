@@ -13,11 +13,11 @@ function bmiLabel(bmi) {
 }
 
 function bmiColor(bmi) {
-  if (!bmi) return "text-gray-500";
-  if (bmi < 18.5) return "text-blue-600";
-  if (bmi < 25) return "text-green-600";
-  if (bmi < 30) return "text-amber-600";
-  return "text-red-600";
+  if (!bmi) return "";
+  if (bmi < 18.5) return "text-info";
+  if (bmi < 25) return "text-success";
+  if (bmi < 30) return "text-warning";
+  return "text-error";
 }
 
 function getLocalToday() {
@@ -44,137 +44,134 @@ export default function BodyMetricsView() {
   const formatDate = (d) =>
     new Date(d + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64 flex-col gap-3">
-        <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-gray-500">Loading...</p>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex justify-center items-center h-64 flex-col gap-3">
+      <span className="loading loading-spinner loading-md" />
+      <p className="text-sm opacity-50">Loading...</p>
+    </div>
+  );
 
-  if (error) return <div className="text-center text-red-500 py-12 text-sm">Error: {error}</div>;
+  if (error) return <div className="alert alert-error m-4 text-sm">{error}</div>;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-light text-black">Body Metrics</h2>
-          {latest && <p className="text-sm text-gray-500 mt-0.5">Update: {formatDate(latest.date)}</p>}
+          <h2 className="text-2xl font-light">Body Metrics</h2>
+          {latest && <p className="text-sm opacity-50 mt-0.5">Update: {formatDate(latest.date)}</p>}
         </div>
         <button
           onClick={() => setShowForm((v) => !v)}
-          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition-all ${
-            showForm ? "bg-gray-100 text-gray-600 border-gray-200" : "bg-black text-white border-black hover:bg-gray-800"
-          }`}
+          className={`btn btn-sm ${showForm ? "btn-ghost" : "btn-primary"}`}
         >
           {showForm ? <FiX size={15} /> : <FiPlus size={15} />}
           {showForm ? "Batal" : "Catat"}
         </button>
       </div>
 
-      {/* Latest stats */}
+      {/* Stats */}
       {latest && (
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: "Berat", value: `${latest.weight} kg` },
-            { label: "Lingkar Perut", value: `${latest.waist} cm` },
-            { label: "BMI", value: latest.bmi, extra: bmiLabel(latest.bmi), color: bmiColor(latest.bmi) },
-          ].map(({ label, value, extra, color }) => (
-            <div key={label} className="bg-white border border-gray-200 rounded-xl p-3.5 text-center">
-              <p className={`text-xl font-light ${color || "text-black"}`}>{value}</p>
-              {extra && <p className={`text-xs font-medium ${color}`}>{extra}</p>}
-              <p className="text-xs text-gray-400 mt-1">{label}</p>
-            </div>
-          ))}
+        <div className="stats stats-horizontal w-full border border-base-300 rounded-2xl overflow-hidden shadow-none">
+          <div className="stat">
+            <div className="stat-title text-xs">Berat</div>
+            <div className="stat-value text-xl font-light">{latest.weight}</div>
+            <div className="stat-desc">kg</div>
+          </div>
+          <div className="stat">
+            <div className="stat-title text-xs">Pinggang</div>
+            <div className="stat-value text-xl font-light">{latest.waist}</div>
+            <div className="stat-desc">cm</div>
+          </div>
+          <div className="stat">
+            <div className="stat-title text-xs">BMI</div>
+            <div className={`stat-value text-xl font-light ${bmiColor(latest.bmi)}`}>{latest.bmi}</div>
+            <div className={`stat-desc font-medium ${bmiColor(latest.bmi)}`}>{bmiLabel(latest.bmi)}</div>
+          </div>
         </div>
       )}
 
-      {/* Chart */}
       {metrics.length >= 2 && <MetricsChart metrics={metrics} />}
 
       {/* Add form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-          <h3 className="text-sm font-medium text-black">Pengukuran Baru</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Berat (kg)</label>
-              <input
-                type="number" inputMode="decimal" step="0.1"
-                required value={form.weight}
-                onChange={(e) => setForm((f) => ({ ...f, weight: e.target.value }))}
-                placeholder="84.5"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black transition-colors"
-              />
+        <form onSubmit={handleSubmit} className="card card-compact bg-base-100 border border-base-300">
+          <div className="card-body gap-4">
+            <h3 className="card-title text-sm font-medium">Pengukuran Baru</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: "Berat (kg)", key: "weight", inputMode: "decimal", step: "0.1", placeholder: "84.5", required: true },
+                { label: "Pinggang (cm)", key: "waist", inputMode: "decimal", step: "0.5", placeholder: "98", required: true },
+                { label: "Tinggi (cm)", key: "height", inputMode: "decimal", step: "1", placeholder: "173" },
+              ].map(({ label, key, inputMode, step, placeholder, required }) => (
+                <div key={key} className="form-control">
+                  <label className="label py-0 mb-1">
+                    <span className="label-text text-xs opacity-50">{label}</span>
+                  </label>
+                  <input
+                    type="number"
+                    inputMode={inputMode}
+                    step={step}
+                    required={required}
+                    value={form[key]}
+                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                    placeholder={placeholder}
+                    className="input input-bordered input-sm"
+                  />
+                </div>
+              ))}
+              <div className="form-control">
+                <label className="label py-0 mb-1">
+                  <span className="label-text text-xs opacity-50">Tanggal</span>
+                </label>
+                <input
+                  type="date"
+                  value={form.date}
+                  onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                  className="input input-bordered input-sm"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Lingkar Perut (cm)</label>
-              <input
-                type="number" inputMode="decimal" step="0.5"
-                required value={form.waist}
-                onChange={(e) => setForm((f) => ({ ...f, waist: e.target.value }))}
-                placeholder="98"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Tinggi (cm)</label>
-              <input
-                type="number" inputMode="decimal"
-                value={form.height}
-                onChange={(e) => setForm((f) => ({ ...f, height: e.target.value }))}
-                placeholder="173"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Tanggal</label>
-              <input
-                type="date" value={form.date}
-                onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black transition-colors"
-              />
-            </div>
+            <button
+              type="submit"
+              disabled={saving || !form.weight || !form.waist}
+              className="btn btn-primary btn-block btn-sm"
+            >
+              {saving ? <span className="loading loading-spinner loading-xs" /> : <FiCheck size={15} />}
+              Simpan
+            </button>
           </div>
-          <button
-            type="submit"
-            disabled={saving || !form.weight || !form.waist}
-            className="w-full py-3 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-          >
-            {saving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <FiCheck size={15} />}
-            Simpan
-          </button>
         </form>
       )}
 
       {/* History */}
       {metrics.length > 0 && (
         <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Riwayat</p>
-          <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
-            {metrics.map((m) => (
-              <div key={m._id} className="flex items-center justify-between px-4 py-3">
-                <div>
-                  <p className="text-sm text-black">{formatDate(m.date)}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {m.weight} kg · {m.waist} cm pinggang · BMI {m.bmi}
-                  </p>
+          <p className="text-xs opacity-40 uppercase tracking-wider mb-2">Riwayat</p>
+          <div className="card bg-base-100 border border-base-300">
+            <div className="divide-y divide-base-300">
+              {metrics.map((m) => (
+                <div key={m._id} className="flex items-center justify-between px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium">{formatDate(m.date)}</p>
+                    <p className="text-xs opacity-40 mt-0.5">
+                      {m.weight} kg · {m.waist} cm · BMI {m.bmi}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => deleteMetric(m._id)}
+                    className="btn btn-ghost btn-xs text-error"
+                  >
+                    <FiTrash2 size={14} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => deleteMetric(m._id)}
-                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <FiTrash2 size={14} />
-                </button>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
 
       {metrics.length === 0 && !showForm && (
-        <div className="text-center py-12 text-gray-400 text-sm">
+        <div className="text-center py-12 opacity-40 text-sm">
           Belum ada data. Catat pengukuran pertama lo!
         </div>
       )}

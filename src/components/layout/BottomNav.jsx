@@ -15,25 +15,21 @@ export default function BottomNav() {
   if (pathname === "/login") return null;
 
   return (
-    <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 pb-[env(safe-area-inset-bottom)]">
-      <div className="flex">
-        {TABS.map((tab) => {
-          const isActive = pathname.startsWith(tab.href);
-          const Icon = tab.icon;
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-xs font-medium transition-colors ${
-                isActive ? "text-black" : "text-gray-400"
-              }`}
-            >
-              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-              {tab.label}
-            </Link>
-          );
-        })}
-      </div>
+    <nav className="btm-nav btm-nav-sm sm:hidden z-40 border-t border-base-300 bg-base-100">
+      {TABS.map((tab) => {
+        const isActive = pathname.startsWith(tab.href);
+        const Icon = tab.icon;
+        return (
+          <Link
+            key={tab.href}
+            href={tab.href}
+            className={isActive ? "active text-primary" : "text-base-content/40"}
+          >
+            <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+            <span className="btm-nav-label text-xs">{tab.label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }

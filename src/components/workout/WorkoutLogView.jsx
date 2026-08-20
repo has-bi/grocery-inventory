@@ -3,34 +3,37 @@ import { useState } from "react";
 import { useWorkoutLog } from "@/hooks/useWorkoutLog";
 import SetInputModal from "./SetInputModal";
 import ExercisePicker from "./ExercisePicker";
-import { FiPlus, FiTrash2, FiChevronDown } from "react-icons/fi";
+import { FiPlus, FiChevronDown } from "react-icons/fi";
 
 const SESSIONS = ["Upper A", "Lower A", "Upper B", "Lower B", "Kondisioning"];
 
 function formatDate(dateStr) {
-  const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" });
+  return new Date(dateStr + "T00:00:00").toLocaleDateString("id-ID", {
+    weekday: "short", day: "numeric", month: "short",
+  });
 }
 
 function SetChip({ log, onDelete }) {
   const [confirming, setConfirming] = useState(false);
+
   if (confirming) {
     return (
-      <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-red-50 text-red-600 rounded-lg border border-red-200">
+      <span className="badge badge-error badge-outline gap-1 cursor-default">
         <button onClick={() => onDelete(log._id)} className="font-medium">Hapus?</button>
-        <span className="text-red-300">·</span>
-        <button onClick={() => setConfirming(false)} className="text-red-400">Batal</button>
+        <span>·</span>
+        <button onClick={() => setConfirming(false)}>Batal</button>
       </span>
     );
   }
+
   return (
     <button
       onClick={() => setConfirming(true)}
-      className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+      className="badge badge-ghost badge-lg gap-1 hover:badge-neutral cursor-pointer"
     >
-      <span className="text-gray-400">#{log.set_number}</span>
+      <span className="opacity-40">#{log.set_number}</span>
       <span className="font-medium">{log.weight}kg × {log.reps}</span>
-      <span className="text-gray-400">@{log.rpe}</span>
+      <span className="opacity-40">@{log.rpe}</span>
     </button>
   );
 }
@@ -43,20 +46,20 @@ function ExerciseCard({ name, sets, programInfo, onLogSet, onDelete }) {
     : null;
 
   return (
-    <div className="border border-gray-200 rounded-xl bg-white">
+    <div className="card card-compact bg-base-100 border border-base-300">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-4 py-3.5 text-left"
+        className="card-body flex-row items-center justify-between text-left"
       >
         <div>
-          <p className="text-sm font-medium text-black">{name}</p>
-          {targetLabel && <p className="text-xs text-gray-400 mt-0.5">{targetLabel}</p>}
+          <p className="font-medium text-sm">{name}</p>
+          {targetLabel && <p className="text-xs opacity-40 mt-0.5">{targetLabel}</p>}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs text-gray-400">{sets.length} set</span>
+          <span className="text-xs opacity-30">{sets.length} set</span>
           <FiChevronDown
             size={15}
-            className={`text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+            className={`opacity-30 transition-transform ${open ? "rotate-180" : ""}`}
           />
         </div>
       </button>
@@ -70,10 +73,7 @@ function ExerciseCard({ name, sets, programInfo, onLogSet, onDelete }) {
               ))}
             </div>
           )}
-          <button
-            onClick={onLogSet}
-            className="flex items-center gap-1.5 text-sm text-black font-medium py-2 px-3 border border-dashed border-gray-300 rounded-lg w-full justify-center hover:border-black hover:bg-gray-50 transition-colors"
-          >
+          <button onClick={onLogSet} className="btn btn-outline btn-sm btn-block">
             <FiPlus size={14} />
             Log Set
           </button>
@@ -85,19 +85,9 @@ function ExerciseCard({ name, sets, programInfo, onLogSet, onDelete }) {
 
 export default function WorkoutLogView() {
   const {
-    loading,
-    error,
-    today,
-    activeSession,
-    setActiveSession,
-    todayByExercise,
-    todayExerciseNames,
-    sessionProgram,
-    exercises,
-    recentSessions,
-    getLastWeight,
-    logSet,
-    deleteSet,
+    loading, error, today, activeSession, setActiveSession,
+    todayByExercise, todayExerciseNames, sessionProgram,
+    exercises, recentSessions, getLastWeight, logSet, deleteSet,
   } = useWorkoutLog();
 
   const [loggingExercise, setLoggingExercise] = useState(null);
@@ -107,40 +97,31 @@ export default function WorkoutLogView() {
     weekday: "long", day: "numeric", month: "long",
   });
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64 flex-col gap-3">
-        <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-gray-500">Loading...</p>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex justify-center items-center h-64 flex-col gap-3">
+      <span className="loading loading-spinner loading-md" />
+      <p className="text-sm opacity-50">Loading...</p>
+    </div>
+  );
 
-  if (error) {
-    return <div className="text-center text-red-500 py-12 text-sm">Error: {error}</div>;
-  }
+  if (error) return <div className="alert alert-error m-4 text-sm">{error}</div>;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
-      {/* Header */}
       <div>
-        <h2 className="text-2xl font-light text-black">Log Latihan</h2>
-        <p className="text-sm text-gray-500 mt-0.5 capitalize">{todayLabel}</p>
+        <h2 className="text-2xl font-light">Log Latihan</h2>
+        <p className="text-sm opacity-50 mt-0.5 capitalize">{todayLabel}</p>
       </div>
 
       {/* Session picker */}
       <div>
-        <p className="text-xs text-gray-500 mb-2">Sesi hari ini</p>
+        <p className="text-xs opacity-40 mb-2">Sesi hari ini</p>
         <div className="flex flex-wrap gap-2">
           {SESSIONS.map((s) => (
             <button
               key={s}
               onClick={() => setActiveSession(s)}
-              className={`px-3.5 py-2 rounded-lg text-sm font-medium border transition-all ${
-                activeSession === s
-                  ? "bg-black text-white border-black"
-                  : "bg-white text-gray-600 border-gray-200 hover:border-gray-500"
-              }`}
+              className={`btn btn-sm ${activeSession === s ? "btn-primary" : "btn-ghost border border-base-300"}`}
             >
               {s}
             </button>
@@ -151,24 +132,17 @@ export default function WorkoutLogView() {
       {/* Exercise cards */}
       {activeSession && (
         <div className="space-y-3">
-          {todayExerciseNames.map((name) => {
-            const progInfo = sessionProgram.find((p) => p.exercise_name === name) ?? null;
-            return (
-              <ExerciseCard
-                key={name}
-                name={name}
-                sets={todayByExercise[name] || []}
-                programInfo={progInfo}
-                onLogSet={() => setLoggingExercise(name)}
-                onDelete={deleteSet}
-              />
-            );
-          })}
-
-          <button
-            onClick={() => setShowPicker(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 text-sm text-gray-500 border border-dashed border-gray-300 rounded-xl hover:border-gray-500 hover:text-black transition-colors"
-          >
+          {todayExerciseNames.map((name) => (
+            <ExerciseCard
+              key={name}
+              name={name}
+              sets={todayByExercise[name] || []}
+              programInfo={sessionProgram.find((p) => p.exercise_name === name) ?? null}
+              onLogSet={() => setLoggingExercise(name)}
+              onDelete={deleteSet}
+            />
+          ))}
+          <button onClick={() => setShowPicker(true)} className="btn btn-outline btn-block">
             <FiPlus size={15} />
             Tambah exercise lain
           </button>
@@ -178,22 +152,21 @@ export default function WorkoutLogView() {
       {/* Recent sessions */}
       {recentSessions.length > 0 && (
         <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Sesi sebelumnya</p>
-          <div className="space-y-1">
+          <p className="text-xs opacity-40 uppercase tracking-wider mb-2">Sesi sebelumnya</p>
+          <div className="divide-y divide-base-300">
             {recentSessions.map((s) => (
-              <div key={s.date} className="flex items-center justify-between py-2 px-1">
+              <div key={s.date} className="flex items-center justify-between py-2.5">
                 <div>
-                  <p className="text-sm text-black">{s.session}</p>
-                  <p className="text-xs text-gray-400">{formatDate(s.date)}</p>
+                  <p className="text-sm font-medium">{s.session}</p>
+                  <p className="text-xs opacity-40">{formatDate(s.date)}</p>
                 </div>
-                <span className="text-xs text-gray-400">{s.sets} set</span>
+                <span className="badge badge-ghost">{s.sets} set</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Set input modal */}
       {loggingExercise && (
         <SetInputModal
           exerciseName={loggingExercise}
@@ -207,15 +180,11 @@ export default function WorkoutLogView() {
         />
       )}
 
-      {/* Exercise picker */}
       {showPicker && (
         <ExercisePicker
           exercises={exercises}
           alreadyAdded={todayExerciseNames}
-          onSelect={(name) => {
-            setShowPicker(false);
-            setLoggingExercise(name);
-          }}
+          onSelect={(name) => { setShowPicker(false); setLoggingExercise(name); }}
           onClose={() => setShowPicker(false)}
         />
       )}

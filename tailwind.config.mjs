@@ -10,23 +10,31 @@ export default {
   theme: {
     extend: {},
   },
-  darkMode: "class",
   plugins: [require("daisyui")],
   daisyui: {
     themes: [
       {
         light: {
-          "primary": "#3b82f6",      // blue-500
-          "secondary": "#64748b",    // gray-500
-          "accent": "#f59e0b",       // amber-500
-          "neutral": "#1f2937",      // gray-800
-          "base-100": "#ffffff",     // white
-          "base-200": "#f9fafb",     // gray-50
-          "base-300": "#f3f4f6",     // gray-100
-          "info": "#3b82f6",         // blue-500
-          "success": "#10b981",      // green-500
-          "warning": "#f59e0b",      // amber-500
-          "error": "#ef4444",        // red-500
+          "primary":          "#18181b",
+          "primary-content":  "#fafafa",
+          "secondary":        "#71717a",
+          "secondary-content":"#fafafa",
+          "accent":           "#18181b",
+          "accent-content":   "#fafafa",
+          "neutral":          "#3f3f46",
+          "neutral-content":  "#fafafa",
+          "base-100":         "#ffffff",
+          "base-200":         "#f4f4f5",
+          "base-300":         "#e4e4e7",
+          "base-content":     "#18181b",
+          "info":             "#0ea5e9",
+          "info-content":     "#ffffff",
+          "success":          "#22c55e",
+          "success-content":  "#ffffff",
+          "warning":          "#f59e0b",
+          "warning-content":  "#000000",
+          "error":            "#ef4444",
+          "error-content":    "#ffffff",
         },
       },
     ],
