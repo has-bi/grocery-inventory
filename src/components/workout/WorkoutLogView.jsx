@@ -18,10 +18,10 @@ function SetChip({ log, onDelete }) {
 
   if (confirming) {
     return (
-      <span className="badge badge-error badge-outline gap-1 cursor-default">
-        <button onClick={() => onDelete(log._id)} className="font-medium">Hapus?</button>
-        <span>·</span>
-        <button onClick={() => setConfirming(false)}>Batal</button>
+      <span className="badge badge-error badge-outline gap-1.5 cursor-default py-3 px-2.5">
+        <button onClick={() => onDelete(log._id)} className="font-semibold text-xs">Hapus?</button>
+        <span className="text-error/50">·</span>
+        <button onClick={() => setConfirming(false)} className="text-xs">Batal</button>
       </span>
     );
   }
@@ -29,11 +29,11 @@ function SetChip({ log, onDelete }) {
   return (
     <button
       onClick={() => setConfirming(true)}
-      className="badge badge-ghost badge-lg gap-1 hover:badge-neutral cursor-pointer"
+      className="badge badge-ghost badge-lg gap-1.5 hover:badge-neutral cursor-pointer h-auto py-1.5 px-3"
     >
-      <span className="opacity-40">#{log.set_number}</span>
-      <span className="font-medium">{log.weight}kg × {log.reps}</span>
-      <span className="opacity-40">@{log.rpe}</span>
+      <span className="text-base-content/50 text-xs">#{log.set_number}</span>
+      <span className="font-semibold text-sm">{log.weight}kg × {log.reps}</span>
+      <span className="text-base-content/50 text-xs">@{log.rpe}</span>
     </button>
   );
 }
@@ -49,17 +49,17 @@ function ExerciseCard({ name, sets, programInfo, onLogSet, onDelete }) {
     <div className="card card-compact bg-base-100 border border-base-300">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="card-body flex-row items-center justify-between text-left"
+        className="card-body flex-row items-center justify-between text-left gap-3"
       >
-        <div>
-          <p className="font-medium text-sm">{name}</p>
-          {targetLabel && <p className="text-xs opacity-40 mt-0.5">{targetLabel}</p>}
+        <div className="min-w-0">
+          <p className="font-semibold text-sm leading-snug">{name}</p>
+          {targetLabel && <p className="text-xs text-base-content/55 mt-0.5 truncate">{targetLabel}</p>}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs opacity-30">{sets.length} set</span>
+          <span className="text-xs text-base-content/50 tabular-nums">{sets.length} set</span>
           <FiChevronDown
             size={15}
-            className={`opacity-30 transition-transform ${open ? "rotate-180" : ""}`}
+            className={`text-base-content/40 transition-transform ${open ? "rotate-180" : ""}`}
           />
         </div>
       </button>
@@ -100,7 +100,7 @@ export default function WorkoutLogView() {
   if (loading) return (
     <div className="flex justify-center items-center h-64 flex-col gap-3">
       <span className="loading loading-spinner loading-md" />
-      <p className="text-sm opacity-50">Loading...</p>
+      <p className="text-sm text-base-content/50">Loading...</p>
     </div>
   );
 
@@ -110,12 +110,12 @@ export default function WorkoutLogView() {
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <div>
         <h2 className="text-2xl font-light">Log Latihan</h2>
-        <p className="text-sm opacity-50 mt-0.5 capitalize">{todayLabel}</p>
+        <p className="text-sm text-base-content/60 mt-0.5 capitalize">{todayLabel}</p>
       </div>
 
       {/* Session picker */}
       <div>
-        <p className="text-xs opacity-40 mb-2">Sesi hari ini</p>
+        <p className="text-xs font-medium text-base-content/55 mb-2">Sesi hari ini</p>
         <div className="flex flex-wrap gap-2">
           {SESSIONS.map((s) => (
             <button
@@ -152,17 +152,19 @@ export default function WorkoutLogView() {
       {/* Recent sessions */}
       {recentSessions.length > 0 && (
         <div>
-          <p className="text-xs opacity-40 uppercase tracking-wider mb-2">Sesi sebelumnya</p>
-          <div className="divide-y divide-base-300">
-            {recentSessions.map((s) => (
-              <div key={s.date} className="flex items-center justify-between py-2.5">
-                <div>
-                  <p className="text-sm font-medium">{s.session}</p>
-                  <p className="text-xs opacity-40">{formatDate(s.date)}</p>
+          <p className="text-xs font-medium text-base-content/55 uppercase tracking-wider mb-3">Sesi sebelumnya</p>
+          <div className="card bg-base-100 border border-base-300">
+            <div className="divide-y divide-base-300">
+              {recentSessions.map((s) => (
+                <div key={s.date} className="flex items-center justify-between px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium">{s.session}</p>
+                    <p className="text-xs text-base-content/55 mt-0.5">{formatDate(s.date)}</p>
+                  </div>
+                  <span className="badge badge-ghost text-xs">{s.sets} set</span>
                 </div>
-                <span className="badge badge-ghost">{s.sets} set</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}

@@ -25,42 +25,44 @@ export default function MetricsChart({ metrics }) {
     new Date(d + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4">
-      <p className="text-xs text-gray-500 mb-3">Tren Berat Badan</p>
-      <div className="overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: "280px" }}>
-          <g transform={`translate(${PAD.left},${PAD.top})`}>
-            {[0, 0.5, 1].map((t) => {
-              const y = t * chartH;
-              const val = maxW - t * (maxW - minW);
-              return (
-                <g key={t}>
-                  <line x1={0} y1={y} x2={chartW} y2={y} stroke="#f0f0f0" strokeWidth={1} />
-                  <text x={-4} y={y + 3} textAnchor="end" fontSize={9} fill="#9ca3af">
-                    {val.toFixed(1)}
+    <div className="card card-compact bg-base-100 border border-base-300">
+      <div className="card-body">
+        <p className="text-xs font-medium text-base-content/60 mb-2">Tren Berat Badan</p>
+        <div className="overflow-x-auto">
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: "280px" }}>
+            <g transform={`translate(${PAD.left},${PAD.top})`}>
+              {[0, 0.5, 1].map((t) => {
+                const y = t * chartH;
+                const val = maxW - t * (maxW - minW);
+                return (
+                  <g key={t}>
+                    <line x1={0} y1={y} x2={chartW} y2={y} stroke="currentColor" strokeOpacity={0.08} strokeWidth={1} />
+                    <text x={-4} y={y + 3} textAnchor="end" fontSize={9} fill="currentColor" fillOpacity={0.45}>
+                      {val.toFixed(1)}
+                    </text>
+                  </g>
+                );
+              })}
+
+              <polygon points={polyFill} fill="currentColor" fillOpacity={0.06} />
+              <polyline points={points} fill="none" stroke="currentColor" strokeOpacity={0.9} strokeWidth={1.5} strokeLinejoin="round" />
+
+              {data.map((d, i) => (
+                <circle key={i} cx={xScale(i)} cy={yScale(d.weight)} r={3} fill="currentColor" fillOpacity={0.9} />
+              ))}
+
+              {data.map((d, i) => {
+                const showLabel = i === 0 || i === data.length - 1 || i === Math.floor(data.length / 2);
+                if (!showLabel) return null;
+                return (
+                  <text key={i} x={xScale(i)} y={chartH + 14} textAnchor="middle" fontSize={8} fill="currentColor" fillOpacity={0.45}>
+                    {formatDate(d.date)}
                   </text>
-                </g>
-              );
-            })}
-
-            <polygon points={polyFill} fill="#000" fillOpacity={0.04} />
-            <polyline points={points} fill="none" stroke="#111" strokeWidth={1.5} strokeLinejoin="round" />
-
-            {data.map((d, i) => (
-              <circle key={i} cx={xScale(i)} cy={yScale(d.weight)} r={3} fill="#111" />
-            ))}
-
-            {data.map((d, i) => {
-              const showLabel = i === 0 || i === data.length - 1 || i === Math.floor(data.length / 2);
-              if (!showLabel) return null;
-              return (
-                <text key={i} x={xScale(i)} y={chartH + 14} textAnchor="middle" fontSize={8} fill="#9ca3af">
-                  {formatDate(d.date)}
-                </text>
-              );
-            })}
-          </g>
-        </svg>
+                );
+              })}
+            </g>
+          </svg>
+        </div>
       </div>
     </div>
   );

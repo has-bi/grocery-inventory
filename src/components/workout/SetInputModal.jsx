@@ -21,25 +21,25 @@ export default function SetInputModal({ exerciseName, setNumber, prefillWeight, 
 
   return (
     <div className="modal modal-open modal-bottom sm:modal-middle">
-      <div className="modal-box rounded-t-2xl sm:rounded-2xl px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-        <div className="flex items-center justify-between mb-5">
+      <div className="modal-box rounded-t-2xl sm:rounded-2xl px-6 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-xs opacity-40 uppercase tracking-wider">Set {setNumber}</p>
-            <h3 className="font-semibold leading-tight">{exerciseName}</h3>
+            <p className="text-xs text-base-content/55 uppercase tracking-wider mb-0.5">Set {setNumber}</p>
+            <h3 className="font-semibold text-base leading-tight">{exerciseName}</h3>
           </div>
           <button onClick={onClose} className="btn btn-ghost btn-sm btn-circle">
             <FiX size={18} />
           </button>
         </div>
 
-        <div className="flex gap-4 mb-5">
+        <div className="flex gap-3 mb-6">
           {[
             { label: "Beban (kg)", value: weight, onChange: setWeight, inputMode: "decimal", step: "2.5", ref: weightRef },
-            { label: "Reps",       value: reps,   onChange: setReps,   inputMode: "numeric",  step: "1" },
+            { label: "Reps", value: reps, onChange: setReps, inputMode: "numeric", step: "1" },
           ].map(({ label, value, onChange, inputMode, step, ref }) => (
             <div key={label} className="flex-1 form-control">
-              <label className="label py-0 mb-1.5">
-                <span className="label-text text-xs opacity-40">{label}</span>
+              <label className="label py-0 mb-2">
+                <span className="label-text text-xs text-base-content/60">{label}</span>
               </label>
               <input
                 ref={ref}
@@ -51,7 +51,7 @@ export default function SetInputModal({ exerciseName, setNumber, prefillWeight, 
                 onChange={(e) => onChange(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
                 placeholder="0"
-                className="input input-bordered w-full text-2xl font-light text-center"
+                className="input input-bordered w-full text-3xl font-light text-center h-16"
               />
             </div>
           ))}
@@ -59,7 +59,7 @@ export default function SetInputModal({ exerciseName, setNumber, prefillWeight, 
 
         <div className="mb-6">
           <label className="label py-0 mb-2">
-            <span className="label-text text-xs opacity-40">RPE</span>
+            <span className="label-text text-xs text-base-content/60">RPE — tingkat usaha (6 mudah · 10 maksimal)</span>
           </label>
           <div className="join w-full">
             {RPE_OPTIONS.map((r) => (
@@ -67,7 +67,7 @@ export default function SetInputModal({ exerciseName, setNumber, prefillWeight, 
                 key={r}
                 type="button"
                 onClick={() => setRpe(r)}
-                className={`join-item btn flex-1 ${rpe === r ? "btn-primary" : "btn-ghost border border-base-300"}`}
+                className={`join-item btn flex-1 text-base ${rpe === r ? "btn-primary" : "btn-ghost border border-base-300"}`}
               >
                 {r}
               </button>
@@ -78,7 +78,7 @@ export default function SetInputModal({ exerciseName, setNumber, prefillWeight, 
         <button
           onClick={handleConfirm}
           disabled={!weight || !reps}
-          className="btn btn-primary btn-block"
+          className="btn btn-primary btn-block btn-lg"
         >
           Catat Set
         </button>
