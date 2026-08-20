@@ -14,18 +14,14 @@ export default function TabNav() {
   if (pathname === "/login") return null;
 
   return (
-    <div className="hidden sm:flex -mb-px">
+    <div className="hidden sm:flex gap-1">
       {TABS.map((tab) => {
         const isActive = pathname.startsWith(tab.href);
         return (
           <Link
             key={tab.href}
             href={tab.href}
-            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-              isActive
-                ? "border-black text-black"
-                : "border-transparent text-gray-500 hover:text-black"
-            }`}
+            className={`btn btn-sm btn-ghost ${isActive ? "btn-active" : ""}`}
           >
             {tab.label}
           </Link>
