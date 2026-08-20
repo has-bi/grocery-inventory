@@ -70,7 +70,7 @@ function SetRow({ log, index, onDelete }) {
           <button
             onClick={() => setConfirming(true)}
             aria-label={`Hapus set ${index + 1}`}
-            className="btn btn-ghost btn-xs w-8 shrink-0"
+            className="btn btn-ghost btn-icon shrink-0"
           >
             <FiTrash2 size={13} />
           </button>
@@ -135,7 +135,7 @@ function ExerciseCard({ name, sets, programInfo, lastPerformance, hasTutorial, o
             <button
               onClick={onShowTutorial}
               aria-label={`Tutorial ${name}`}
-              className="btn btn-ghost btn-xs w-8"
+              className="btn btn-ghost btn-icon"
             >
               <FiHelpCircle size={16} />
             </button>
@@ -143,7 +143,7 @@ function ExerciseCard({ name, sets, programInfo, lastPerformance, hasTutorial, o
           <button
             onClick={() => setOpen((o) => !o)}
             aria-label={open ? "Tutup" : "Buka"}
-            className="btn btn-ghost btn-xs w-6"
+            className="btn btn-ghost btn-icon"
           >
             <FiChevronDown
               size={16}
@@ -243,7 +243,7 @@ export default function WorkoutLogView() {
 
       {error && (
         <div className="flex items-start gap-2.5 rounded-xl bg-red-50 border border-red-200 px-3.5 py-3">
-          <FiAlertCircle size={16} className="text-red-600 shrink-0 mt-0.5" />
+          <FiAlertCircle size={16} className="text-red-700 shrink-0 mt-0.5" />
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
@@ -265,7 +265,7 @@ export default function WorkoutLogView() {
               key={s}
               onClick={() => setActiveSession(s)}
               aria-pressed={activeSession === s}
-              className={`btn btn-sm shrink-0 whitespace-nowrap ${
+              className={`btn btn-md shrink-0 whitespace-nowrap ${
                 activeSession === s ? "btn-primary" : "btn-secondary"
               }`}
             >

@@ -114,7 +114,7 @@ export default function SummaryView() {
 
       {error && (
         <div className="flex items-start gap-2.5 rounded-xl bg-red-50 border border-red-200 px-3.5 py-3">
-          <FiAlertCircle size={16} className="text-red-600 shrink-0 mt-0.5" />
+          <FiAlertCircle size={16} className="text-red-700 shrink-0 mt-0.5" />
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
@@ -135,7 +135,7 @@ export default function SummaryView() {
                 {weekly.previous > 0 && weekDelta !== 0 && (
                   <span
                     className={`text-xs font-semibold tabular ${
-                      weekDelta > 0 ? "text-emerald-600" : "text-amber-600"
+                      weekDelta > 0 ? "text-emerald-700" : "text-amber-700"
                     }`}
                   >
                     {weekDelta > 0 ? "+" : ""}
