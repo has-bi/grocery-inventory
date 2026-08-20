@@ -61,7 +61,7 @@ export default function TodayView() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64 gap-3 flex-col">
-        <span className="loading loading-spinner loading-lg text-black"></span>
+        <span className="h-8 w-8 rounded-full border-2 border-ink border-t-transparent animate-spin" />
         <p className="text-sm text-gray-500">Loading data...</p>
       </div>
     );

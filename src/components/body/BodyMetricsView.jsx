@@ -2,22 +2,18 @@
 import { useState } from "react";
 import { useBodyMetrics } from "@/hooks/useBodyMetrics";
 import MetricsChart from "./MetricsChart";
-import { FiTrash2, FiPlus, FiX, FiCheck } from "react-icons/fi";
+import { FiTrash2, FiPlus, FiX, FiArrowDown, FiArrowUp, FiAlertCircle } from "react-icons/fi";
 
-function bmiLabel(bmi) {
-  if (!bmi) return "";
-  if (bmi < 18.5) return "Kurus";
-  if (bmi < 25) return "Normal";
-  if (bmi < 30) return "Overweight";
-  return "Obesitas";
-}
+const BMI_BANDS = [
+  { max: 18.5, label: "Kurus", tone: "text-sky-600" },
+  { max: 25, label: "Normal", tone: "text-emerald-600" },
+  { max: 30, label: "Overweight", tone: "text-amber-600" },
+  { max: Infinity, label: "Obesitas", tone: "text-red-600" },
+];
 
-function bmiColor(bmi) {
-  if (!bmi) return "";
-  if (bmi < 18.5) return "text-info";
-  if (bmi < 25) return "text-success";
-  if (bmi < 30) return "text-warning";
-  return "text-error";
+function bmiBand(bmi) {
+  if (!bmi) return { label: "", tone: "text-ink" };
+  return BMI_BANDS.find((b) => bmi < b.max);
 }
 
 function getLocalToday() {
@@ -25,11 +21,47 @@ function getLocalToday() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+const formatDate = (d) =>
+  new Date(d + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+
+/**
+ * A measurement on its own says little — the change since the last one is the
+ * signal, so every stat carries its delta.
+ */
+function Stat({ label, value, unit, delta, tone, caption }) {
+  const moved = delta != null && Math.abs(delta) >= 0.05;
+  const down = delta < 0;
+
+  return (
+    <div className="flex-1 px-4 py-3.5 min-w-0">
+      <p className="text-xs text-ink-muted mb-1">{label}</p>
+      <p className={`text-2xl font-semibold tabular leading-none ${tone || "text-ink"}`}>
+        {value ?? "—"}
+        {unit && <span className="text-sm font-normal text-ink-faint ml-1">{unit}</span>}
+      </p>
+      {moved ? (
+        <p
+          className={`text-xs font-medium mt-1.5 flex items-center gap-0.5 tabular ${
+            down ? "text-emerald-600" : "text-amber-600"
+          }`}
+        >
+          {down ? <FiArrowDown size={11} /> : <FiArrowUp size={11} />}
+          {Math.abs(Math.round(delta * 10) / 10)}
+        </p>
+      ) : (
+        caption && <p className="text-xs text-ink-faint mt-1.5">{caption}</p>
+      )}
+    </div>
+  );
+}
+
 export default function BodyMetricsView() {
   const { loading, error, metrics, latest, addMetric, deleteMetric } = useBodyMetrics();
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ weight: "", waist: "", height: "173", date: getLocalToday() });
+
+  const previous = metrics[1] ?? null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,140 +73,167 @@ export default function BodyMetricsView() {
     setSaving(false);
   };
 
-  const formatDate = (d) =>
-    new Date(d + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+        <div className="h-8 w-44 rounded-lg bg-surface-raised animate-pulse" />
+        <div className="h-24 w-full rounded-2xl bg-surface-raised animate-pulse" />
+        <div className="h-40 w-full rounded-2xl bg-surface-raised animate-pulse" />
+      </div>
+    );
+  }
 
-  if (loading) return (
-    <div className="flex justify-center items-center h-64 flex-col gap-3">
-      <span className="loading loading-spinner loading-md" />
-      <p className="text-sm text-base-content/50">Loading...</p>
-    </div>
-  );
-
-  if (error) return <div className="alert alert-error m-4 text-sm">{error}</div>;
+  const band = bmiBand(latest?.bmi);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
-      <div className="flex items-center justify-between">
+      <header className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-light">Body Metrics</h2>
-          {latest && <p className="text-sm text-base-content/60 mt-0.5">Update: {formatDate(latest.date)}</p>}
+          <h1 className="page-title">Body Metrics</h1>
+          <p className="page-sub">
+            {latest ? `Terakhir diukur ${formatDate(latest.date)}` : "Belum ada pengukuran"}
+          </p>
         </div>
         <button
           onClick={() => setShowForm((v) => !v)}
-          className={`btn btn-sm ${showForm ? "btn-ghost" : "btn-primary"}`}
+          className={`btn btn-md shrink-0 ${showForm ? "btn-secondary" : "btn-primary"}`}
         >
           {showForm ? <FiX size={15} /> : <FiPlus size={15} />}
           {showForm ? "Batal" : "Catat"}
         </button>
-      </div>
+      </header>
 
-      {/* Stats */}
-      {latest && (
-        <div className="overflow-x-auto">
-          <div className="stats stats-horizontal w-full min-w-[280px] bg-base-100 border border-base-300 rounded-2xl shadow-none">
-            <div className="stat">
-              <div className="stat-title text-xs">Berat</div>
-              <div className="stat-value text-2xl font-light">{latest.weight}</div>
-              <div className="stat-desc text-sm font-medium">kg</div>
-            </div>
-            <div className="stat">
-              <div className="stat-title text-xs">Pinggang</div>
-              <div className="stat-value text-2xl font-light">{latest.waist}</div>
-              <div className="stat-desc text-sm font-medium">cm</div>
-            </div>
-            <div className="stat">
-              <div className="stat-title text-xs">BMI</div>
-              <div className={`stat-value text-2xl font-light ${bmiColor(latest.bmi)}`}>{latest.bmi}</div>
-              <div className={`stat-desc text-sm font-semibold ${bmiColor(latest.bmi)}`}>{bmiLabel(latest.bmi)}</div>
-            </div>
-          </div>
+      {error && (
+        <div className="flex items-start gap-2.5 rounded-xl bg-red-50 border border-red-200 px-3.5 py-3">
+          <FiAlertCircle size={16} className="text-red-600 shrink-0 mt-0.5" />
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
+
+      {latest && (
+        <div className="card flex divide-x divide-line">
+          <Stat
+            label="Berat"
+            value={latest.weight}
+            unit="kg"
+            delta={previous ? latest.weight - previous.weight : null}
+            caption={previous ? "tetap" : "baseline"}
+          />
+          <Stat
+            label="Pinggang"
+            value={latest.waist}
+            unit="cm"
+            delta={previous ? latest.waist - previous.waist : null}
+            caption={previous ? "tetap" : "baseline"}
+          />
+          <Stat
+            label="BMI"
+            value={latest.bmi}
+            tone={band.tone}
+            delta={previous ? latest.bmi - previous.bmi : null}
+            caption={band.label}
+          />
+        </div>
+      )}
+
+      {latest && <p className="text-xs text-ink-faint -mt-2 px-1">{band.label} · tinggi {latest.height} cm</p>}
 
       {metrics.length >= 2 && <MetricsChart metrics={metrics} />}
 
-      {/* Add form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="card card-compact bg-base-100 border border-base-300">
-          <div className="card-body gap-4">
-            <h3 className="font-semibold text-sm">Pengukuran Baru</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Berat (kg)", key: "weight", inputMode: "decimal", step: "0.1", placeholder: "84.5", required: true },
-                { label: "Pinggang (cm)", key: "waist", inputMode: "decimal", step: "0.5", placeholder: "98", required: true },
-                { label: "Tinggi (cm)", key: "height", inputMode: "decimal", step: "1", placeholder: "173" },
-              ].map(({ label, key, inputMode, step, placeholder, required }) => (
-                <div key={key} className="form-control">
-                  <label className="label py-0 mb-1">
-                    <span className="label-text text-xs text-base-content/60">{label}</span>
-                  </label>
-                  <input
-                    type="number"
-                    inputMode={inputMode}
-                    step={step}
-                    required={required}
-                    value={form[key]}
-                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                    placeholder={placeholder}
-                    className="input input-bordered input-sm"
-                  />
-                </div>
-              ))}
-              <div className="form-control">
-                <label className="label py-0 mb-1">
-                  <span className="label-text text-xs text-base-content/60">Tanggal</span>
-                </label>
+        <form onSubmit={handleSubmit} className="card p-4 space-y-4">
+          <h2 className="text-sm font-semibold text-ink">Pengukuran Baru</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "Berat (kg)", key: "weight", step: "0.1", placeholder: "84.5", required: true },
+              { label: "Pinggang (cm)", key: "waist", step: "0.5", placeholder: "98", required: true },
+              { label: "Tinggi (cm)", key: "height", step: "1", placeholder: "173" },
+            ].map(({ label, key, step, placeholder, required }) => (
+              <div key={key}>
+                <label htmlFor={`bm-${key}`} className="field-label">{label}</label>
                 <input
-                  type="date"
-                  value={form.date}
-                  onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-                  className="input input-bordered input-sm"
+                  id={`bm-${key}`}
+                  type="number"
+                  inputMode="decimal"
+                  step={step}
+                  required={required}
+                  value={form[key]}
+                  onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                  placeholder={placeholder}
+                  className="field tabular"
                 />
               </div>
+            ))}
+            <div>
+              <label htmlFor="bm-date" className="field-label">Tanggal</label>
+              <input
+                id="bm-date"
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                className="field"
+              />
             </div>
-            <button
-              type="submit"
-              disabled={saving || !form.weight || !form.waist}
-              className="btn btn-primary btn-block btn-sm"
-            >
-              {saving ? <span className="loading loading-spinner loading-xs" /> : <FiCheck size={15} />}
-              Simpan
-            </button>
           </div>
+          <button
+            type="submit"
+            disabled={saving || !form.weight || !form.waist}
+            className="btn btn-primary btn-md w-full"
+          >
+            {saving ? "Menyimpan..." : "Simpan"}
+          </button>
         </form>
       )}
 
-      {/* History */}
       {metrics.length > 0 && (
-        <div>
-          <p className="text-xs font-medium text-base-content/55 uppercase tracking-wider mb-3">Riwayat</p>
-          <div className="card bg-base-100 border border-base-300">
-            <div className="divide-y divide-base-300">
-              {metrics.map((m) => (
-                <div key={m._id} className="flex items-center justify-between px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium">{formatDate(m.date)}</p>
-                    <p className="text-xs text-base-content/55 mt-0.5">
+        <section>
+          <p className="section-label mb-2.5">Riwayat</p>
+          <div className="card divide-y divide-line">
+            {metrics.map((m, i) => {
+              const prev = metrics[i + 1];
+              const d = prev ? m.weight - prev.weight : null;
+              return (
+                <div key={m._id} className="flex items-center gap-3 px-4 py-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-ink">{formatDate(m.date)}</p>
+                    <p className="text-xs text-ink-muted mt-0.5 tabular">
                       {m.weight} kg · {m.waist} cm · BMI {m.bmi}
                     </p>
                   </div>
+                  {d != null && Math.abs(d) >= 0.05 && (
+                    <span
+                      className={`text-xs font-semibold tabular shrink-0 ${
+                        d < 0 ? "text-emerald-600" : "text-amber-600"
+                      }`}
+                    >
+                      {d > 0 ? "+" : ""}
+                      {Math.round(d * 10) / 10}
+                    </span>
+                  )}
                   <button
                     onClick={() => deleteMetric(m._id)}
-                    className="btn btn-ghost btn-xs text-error"
+                    aria-label={`Hapus pengukuran ${formatDate(m.date)}`}
+                    className="btn btn-ghost btn-xs w-8 shrink-0"
                   >
-                    <FiTrash2 size={14} />
+                    <FiTrash2 size={13} />
                   </button>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        </div>
+        </section>
       )}
 
       {metrics.length === 0 && !showForm && (
-        <div className="text-center py-12 text-base-content/50 text-sm">
-          Belum ada data. Catat pengukuran pertama lo!
+        <div className="card p-8 text-center">
+          <p className="text-sm font-medium text-ink mb-1">Belum ada data</p>
+          <p className="text-sm text-ink-muted mb-4">
+            Catat pengukuran pertama buat mulai lihat trennya.
+          </p>
+          <button onClick={() => setShowForm(true)} className="btn btn-primary btn-md mx-auto">
+            <FiPlus size={15} />
+            Catat sekarang
+          </button>
         </div>
       )}
     </div>

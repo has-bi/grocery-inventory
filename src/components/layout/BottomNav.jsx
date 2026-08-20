@@ -1,13 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiActivity, FiUser, FiList, FiBarChart2 } from "react-icons/fi";
+import { FiActivity, FiUser, FiList, FiTrendingUp } from "react-icons/fi";
 
-const TABS = [
-  { label: "Log",     href: "/log",     icon: FiActivity },
-  { label: "Body",    href: "/body",    icon: FiUser },
+export const TABS = [
+  { label: "Log", href: "/log", icon: FiActivity },
+  { label: "Body", href: "/body", icon: FiUser },
   { label: "Program", href: "/program", icon: FiList },
-  { label: "Summary", href: "/summary", icon: FiBarChart2 },
+  { label: "Progress", href: "/summary", icon: FiTrendingUp },
 ];
 
 export default function BottomNav() {
@@ -15,21 +15,31 @@ export default function BottomNav() {
   if (pathname === "/login") return null;
 
   return (
-    <nav className="btm-nav btm-nav-sm sm:hidden z-40 border-t border-base-300 bg-base-100">
-      {TABS.map((tab) => {
-        const isActive = pathname.startsWith(tab.href);
-        const Icon = tab.icon;
-        return (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            className={isActive ? "active text-primary" : "text-base-content/40"}
-          >
-            <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-            <span className="btm-nav-label text-xs">{tab.label}</span>
-          </Link>
-        );
-      })}
+    <nav
+      aria-label="Navigasi utama"
+      className="sm:hidden fixed inset-x-0 bottom-0 z-30 bg-surface/95 backdrop-blur
+                 border-t border-line pb-[env(safe-area-inset-bottom)]"
+    >
+      <div className="grid grid-cols-4">
+        {TABS.map(({ label, href, icon: Icon }) => {
+          const active = pathname.startsWith(href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              aria-current={active ? "page" : undefined}
+              className={`flex flex-col items-center justify-center gap-1 h-16 transition-colors ${
+                active ? "text-ink" : "text-ink-faint"
+              }`}
+            >
+              <Icon size={20} strokeWidth={active ? 2.4 : 1.8} />
+              <span className={`text-[11px] leading-none ${active ? "font-semibold" : "font-medium"}`}>
+                {label}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }
