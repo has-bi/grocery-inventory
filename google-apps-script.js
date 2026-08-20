@@ -7,8 +7,15 @@
  * 3. Click Run → setupSheets() once to create tabs + headers
  * 4. Click Run → seedExercises() once to populate master exercise list
  * 5. Click Run → seedPrograms() once to populate default Upper/Lower program
- * 6. Deploy → New deployment → Web app (Execute as: Me, Who: Anyone)
- * 7. Copy Web App URL → set as APPS_SCRIPT_URL in Vercel env vars
+ * 6. Click Run → seedSchedule() once to populate the weekly split + rest days
+ * 7. Click Run → seedExerciseTutorials() once to fill technique notes
+ * 8. Deploy → New deployment → Web app (Execute as: Me, Who: Anyone)
+ * 9. Copy Web App URL → set as APPS_SCRIPT_URL in Vercel env vars
+ *
+ * Day-to-day you edit the Sheet, not the app:
+ *   Schedule  — which session runs on each weekday; use REST for rest days
+ *   Programs  — the exercises, sets, reps and rest_seconds per session
+ *   Exercises — video_url and cues shown as the in-app tutorial
  */
 
 const SPREADSHEET_ID = "1KeDvjqh_vf73zVw7xKlCAuAQYuXI-QKzsfOPrVkbYqk";
@@ -18,9 +25,10 @@ function setupSheets() {
 
   const SCHEMAS = {
     BodyMetrics: ["_id", "date", "weight", "waist", "height", "bmi"],
-    Exercises:   ["_id", "name", "muscle_group", "equipment"],
+    Exercises:   ["_id", "name", "muscle_group", "equipment", "video_url", "cues"],
     WorkoutLogs: ["_id", "date", "session", "exercise_name", "set_number", "weight", "reps", "rpe", "notes"],
     Programs:    ["_id", "session", "exercise_name", "target_sets", "target_reps", "rest_seconds", "target_weight", "sort_order"],
+    Schedule:    ["_id", "day_of_week", "session", "notes"],
   };
 
   for (const [name, headers] of Object.entries(SCHEMAS)) {
@@ -45,7 +53,102 @@ function setupSheets() {
     }
   }
 
-  Logger.log("Setup complete: BodyMetrics, Exercises, WorkoutLogs, Programs");
+  Logger.log("Setup complete: BodyMetrics, Exercises, WorkoutLogs, Programs, Schedule");
+}
+
+/**
+ * Weekly training split. `session` must match a session name used in Programs,
+ * or be REST for a planned rest day.
+ *
+ * Rest days are explicit rows rather than missing rows so the streak can tell
+ * "planned rest" apart from "skipped" — a blank day would otherwise look like
+ * a missed session and break the streak.
+ */
+function seedSchedule() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName("Schedule");
+  if (sheet.getLastRow() > 1) {
+    Logger.log("Schedule sheet already has data — skipping seed.");
+    return;
+  }
+
+  const schedule = [
+    ["Senin",  "Upper A",       ""],
+    ["Selasa", "Lower A",       ""],
+    ["Rabu",   "REST",          "Recovery — jalan santai boleh"],
+    ["Kamis",  "Upper B",       ""],
+    ["Jumat",  "Lower B",       ""],
+    ["Sabtu",  "Kondisioning",  ""],
+    ["Minggu", "REST",          "Full rest"],
+  ];
+
+  schedule.forEach(([day_of_week, session, notes]) => {
+    sheet.appendRow([Utilities.getUuid(), day_of_week, session, notes]);
+  });
+
+  Logger.log("Seeded " + schedule.length + " schedule rows.");
+}
+
+/**
+ * Fills the `cues` column for any seeded exercise that is still blank.
+ *
+ * Only writes empty cells, so re-running never overwrites notes you have
+ * edited yourself. `video_url` is deliberately left alone — paste your own
+ * links there; the app shows a video button only for rows that have one.
+ */
+function seedExerciseTutorials() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName("Exercises");
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+
+  const nameCol = headers.indexOf("name");
+  const cuesCol = headers.indexOf("cues");
+  if (nameCol === -1 || cuesCol === -1) {
+    Logger.log("Run setupSheets() first — 'cues' column is missing.");
+    return;
+  }
+
+  const CUES = {
+    "Bench Press": "Scapula ditarik ke belakang dan ke bawah. Turunkan bar ke bawah dada, siku ~45° dari badan. Kaki napak kuat, jangan angkat pinggul.",
+    "Incline Bench Press": "Bangku 30–45°. Bar turun ke tulang selangka atas. Jaga siku tetap di bawah pergelangan.",
+    "Incline DB Press": "Turunkan dumbbell sampai sejajar dada, tahan sebentar. Jangan benturkan dumbbell di atas.",
+    "Cable Fly": "Siku sedikit ditekuk dan dikunci. Gerakan memeluk, rasakan regangan di dada, bukan bahu.",
+    "Bent Over Row": "Punggung netral, badan ~45°. Tarik bar ke perut bawah, siku menyusur badan.",
+    "Lat Pulldown": "Dada dibusungkan, tarik bar ke dada atas. Bayangkan siku ditarik ke saku, bukan tangan menarik.",
+    "Seated Cable Row": "Punggung tegak, jangan ayun badan. Remas tulang belikat di akhir gerakan.",
+    "Pull Up": "Gantung penuh, bahu aktif. Tarik sampai dagu lewat bar, turun terkontrol.",
+    "Overhead Press": "Glutes dan core dikencangkan. Bar lewat depan dagu lalu kepala masuk ke bawah bar di atas.",
+    "Lateral Raise": "Beban ringan. Angkat ke samping sampai sejajar bahu, siku sedikit ditekuk, jangan pakai momentum.",
+    "Face Pull": "Tali setinggi wajah. Tarik ke arah dahi, buka siku lebar, putar bahu keluar.",
+    "Bicep Curl": "Siku dikunci di sisi badan. Angkat tanpa mengayun punggung, turun pelan.",
+    "Hammer Curl": "Telapak menghadap ke dalam sepanjang gerakan. Fokus ke brachialis dan lengan bawah.",
+    "Tricep Pushdown": "Siku menempel di sisi badan. Hanya lengan bawah yang bergerak, luruskan penuh di bawah.",
+    "Skull Crusher": "Siku tetap mengarah ke atas. Turunkan bar ke dahi, jangan lebarkan siku.",
+    "Squat": "Kaki selebar bahu, lutut mengikuti arah jari kaki. Turun sampai paha minimal sejajar lantai, dada tetap tegak.",
+    "Romanian Deadlift": "Lutut sedikit ditekuk dan dikunci. Dorong pinggul ke belakang, bar menyusur paha, rasakan tarikan hamstring.",
+    "Deadlift": "Bar dekat tulang kering. Punggung netral, dorong lantai dengan kaki, kunci pinggul di atas.",
+    "Leg Press": "Jangan kunci lutut di atas. Turunkan sampai lutut ~90°, punggung bawah tetap menempel.",
+    "Leg Curl": "Gerakan terkontrol, jangan hentak. Tahan sebentar di puncak kontraksi.",
+    "Leg Extension": "Luruskan penuh, tahan 1 detik. Turun pelan, jangan biarkan beban jatuh.",
+    "Hip Thrust": "Punggung atas bertumpu di bangku. Dorong lewat tumit, kunci glutes di atas, dagu menunduk.",
+    "Walking Lunge": "Langkah cukup panjang, lutut belakang hampir menyentuh lantai. Badan tetap tegak.",
+    "Calf Raise": "Rentang gerak penuh — turun sampai regang, naik sampai jinjit maksimal. Tahan di atas.",
+    "Treadmill": "Zona 2: masih bisa ngobrol sambil jalan/lari. Jaga postur tegak, jangan pegangan.",
+    "Stationary Bike": "Sadel setinggi pinggul. Kadens 80–90 rpm, resistensi sedang.",
+    "Rowing Machine": "Urutan: dorong kaki → ayun badan → tarik tangan. Balik urutannya saat kembali.",
+  };
+
+  let filled = 0;
+  for (let i = 1; i < data.length; i++) {
+    const name = String(data[i][nameCol]).trim();
+    const existing = String(data[i][cuesCol] || "").trim();
+    if (existing || !CUES[name]) continue;
+    sheet.getRange(i + 1, cuesCol + 1).setValue(CUES[name]);
+    filled++;
+  }
+
+  Logger.log("Filled cues for " + filled + " exercises. Paste your own links into video_url.");
 }
 
 function seedExercises() {

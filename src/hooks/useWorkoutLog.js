@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { workoutApi, exercisesApi, programApi } from "@/actions/sheets";
+import { workoutApi, exercisesApi, programApi, scheduleApi } from "@/actions/sheets";
+import { buildScheduleMap, computeStreak, recentDays } from "@/lib/streak";
 
+/** Fallback only — the real list comes from whatever sessions the Sheet defines. */
 export const SESSIONS = ["Upper A", "Lower A", "Upper B", "Lower B", "Kondisioning"];
 
 function getLocalToday() {
@@ -19,6 +21,7 @@ export function useWorkoutLog() {
   const [logs, setLogs] = useState([]);
   const [exercises, setExercises] = useState([]);
   const [programs, setPrograms] = useState([]);
+  const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeSession, setActiveSession] = useState(null);
@@ -27,14 +30,18 @@ export function useWorkoutLog() {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [logsData, exData, progData] = await Promise.all([
+      // The Schedule sheet may not exist yet on older deployments; the rest of
+      // the screen still works without it, so its failure is not fatal.
+      const [logsData, exData, progData, schedData] = await Promise.all([
         workoutApi.getAll(),
         exercisesApi.getAll(),
         programApi.getAll(),
+        scheduleApi.getAll().catch(() => []),
       ]);
       setLogs(logsData);
       setExercises(exData);
       setPrograms(progData);
+      setSchedule(Array.isArray(schedData) ? schedData : []);
       setError(null);
 
       const todayLogs = logsData.filter((l) => l.date === today);
@@ -53,20 +60,39 @@ export function useWorkoutLog() {
 
   const todayLogs = useMemo(() => logs.filter((l) => l.date === today), [logs, today]);
 
+  const scheduleMap = useMemo(() => buildScheduleMap(schedule), [schedule]);
+
+  const streak = useMemo(
+    () => computeStreak(logs, scheduleMap, today),
+    [logs, scheduleMap, today]
+  );
+
+  const weekStrip = useMemo(
+    () => recentDays(logs, scheduleMap, today, 7),
+    [logs, scheduleMap, today]
+  );
+
+  /** Session names come from the Sheet, falling back to the built-in split. */
+  const sessions = useMemo(() => {
+    const fromSheet = [
+      ...new Set([
+        ...schedule.map((s) => String(s.session || "").trim()),
+        ...programs.map((p) => String(p.session || "").trim()),
+      ]),
+    ].filter((s) => s && s.toUpperCase() !== "REST");
+    return fromSheet.length ? fromSheet : SESSIONS;
+  }, [schedule, programs]);
+
   /**
-   * Which session to open on. If nothing is logged today, continue the rotation
-   * from the last session actually trained rather than defaulting to the first
-   * tab — the common case is "what's next", not "pick from scratch".
+   * Today's session comes from the Schedule sheet rather than a rotation
+   * guess, so the app opens on whatever the plan actually says.
    */
   const suggestedSession = useMemo(() => {
-    const past = logs
-      .filter((l) => l.date !== today)
-      .sort((a, b) => b.date.localeCompare(a.date));
-    if (!past.length) return SESSIONS[0];
-    const lastIdx = SESSIONS.indexOf(past[0].session);
-    if (lastIdx === -1) return SESSIONS[0];
-    return SESSIONS[(lastIdx + 1) % SESSIONS.length];
-  }, [logs, today]);
+    if (streak.todayPlan?.session && !streak.todayPlan.isRest) {
+      return streak.todayPlan.session;
+    }
+    return sessions[0];
+  }, [streak, sessions]);
 
   useEffect(() => {
     if (!loading && !sessionTouched && !activeSession) {
@@ -227,6 +253,9 @@ export function useWorkoutLog() {
     todayExerciseNames,
     sessionProgram,
     sessionProgress,
+    sessions,
+    streak,
+    weekStrip,
     exercises,
     recentSessions,
     getLastWeight,

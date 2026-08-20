@@ -55,6 +55,14 @@ export const bodyApi = {
   },
 };
 
+export const scheduleApi = {
+  async getAll() {
+    const res = await fetch("/api/sheets/schedule");
+    if (!res.ok) throw new Error("Failed to fetch schedule");
+    return res.json();
+  },
+};
+
 export const exercisesApi = {
   async getAll() {
     const res = await fetch("/api/sheets/exercises");
