@@ -17,28 +17,32 @@ function AddExerciseForm({ exercises, session, onAdd, onClose }) {
 
   return (
     <div className="card card-compact bg-base-100 border border-dashed border-base-300">
-      <div className="card-body gap-3">
+      <div className="card-body gap-4">
         <div className="flex items-center justify-between">
-          <p className="font-medium text-sm">Tambah Exercise</p>
+          <p className="font-semibold text-sm">Tambah Exercise</p>
           <button onClick={onClose} className="btn btn-ghost btn-xs btn-circle">
             <FiX size={16} />
           </button>
         </div>
+
         <div className="form-control">
+          <label className="label py-0 mb-1">
+            <span className="label-text text-xs text-base-content/60">Nama exercise</span>
+          </label>
           <input
             type="text"
-            placeholder="Nama exercise..."
+            placeholder="Cari atau ketik nama..."
             value={name || query}
             onChange={(e) => { setQuery(e.target.value); setName(""); }}
             className="input input-bordered input-sm"
           />
           {query && !name && (
-            <div className="bg-base-100 border border-base-300 rounded-xl mt-1 max-h-36 overflow-y-auto">
+            <div className="border border-base-300 rounded-lg mt-1 overflow-hidden max-h-36 overflow-y-auto bg-base-100">
               {filtered.slice(0, 6).map((e) => (
                 <button
                   key={e._id}
                   onClick={() => { setName(e.name); setQuery(e.name); }}
-                  className="btn btn-ghost btn-sm btn-block justify-start font-normal"
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-base-200 transition-colors"
                 >
                   {e.name}
                 </button>
@@ -46,7 +50,7 @@ function AddExerciseForm({ exercises, session, onAdd, onClose }) {
               {filtered.length === 0 && (
                 <button
                   onClick={() => setName(query)}
-                  className="btn btn-ghost btn-sm btn-block justify-start font-normal opacity-50"
+                  className="w-full text-left px-3 py-2 text-sm text-base-content/60 hover:bg-base-200"
                 >
                   Pakai &ldquo;{query}&rdquo;
                 </button>
@@ -54,7 +58,8 @@ function AddExerciseForm({ exercises, session, onAdd, onClose }) {
             </div>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-2">
+
+        <div className="grid grid-cols-2 gap-3">
           {[
             { label: "Sets", value: sets, set: setSets, placeholder: "4" },
             { label: "Reps", value: reps, set: setReps, placeholder: "8-12" },
@@ -63,7 +68,7 @@ function AddExerciseForm({ exercises, session, onAdd, onClose }) {
           ].map(({ label, value, set, placeholder }) => (
             <div key={label} className="form-control">
               <label className="label py-0 mb-1">
-                <span className="label-text text-xs opacity-50">{label}</span>
+                <span className="label-text text-xs text-base-content/60">{label}</span>
               </label>
               <input
                 type="text"
@@ -75,6 +80,7 @@ function AddExerciseForm({ exercises, session, onAdd, onClose }) {
             </div>
           ))}
         </div>
+
         <button
           onClick={() => {
             const n = name || query;
@@ -84,7 +90,7 @@ function AddExerciseForm({ exercises, session, onAdd, onClose }) {
             onClose();
           }}
           disabled={!name && !query}
-          className="btn btn-primary btn-sm btn-block"
+          className="btn btn-primary btn-block btn-sm"
         >
           Tambah
         </button>
@@ -101,7 +107,7 @@ export default function ProgramView() {
   if (loading) return (
     <div className="flex justify-center items-center h-64 flex-col gap-3">
       <span className="loading loading-spinner loading-md" />
-      <p className="text-sm opacity-50">Loading...</p>
+      <p className="text-sm text-base-content/50">Loading...</p>
     </div>
   );
 
@@ -113,7 +119,7 @@ export default function ProgramView() {
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <div>
         <h2 className="text-2xl font-light">Program</h2>
-        <p className="text-sm opacity-50 mt-0.5">Jadwal latihan mingguan</p>
+        <p className="text-sm text-base-content/60 mt-0.5">Jadwal latihan mingguan</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -130,16 +136,16 @@ export default function ProgramView() {
 
       <div className="space-y-2">
         {sessionExercises.length === 0 && !showAddForm && (
-          <p className="text-sm opacity-40 py-4 text-center">Belum ada exercise di sesi ini.</p>
+          <p className="text-sm text-base-content/50 py-6 text-center">Belum ada exercise di sesi ini.</p>
         )}
 
         {sessionExercises.map((p, idx) => (
           <div key={p._id} className="card card-compact bg-base-100 border border-base-300">
-            <div className="card-body flex-row items-center gap-3">
-              <span className="text-xs opacity-25 font-mono w-4 text-right shrink-0">{idx + 1}</span>
-              <div className="flex-1">
-                <p className="text-sm font-medium">{p.exercise_name}</p>
-                <p className="text-xs opacity-40 mt-0.5">
+            <div className="card-body flex-row items-start gap-3">
+              <span className="text-xs text-base-content/40 font-mono mt-0.5 w-5 text-right shrink-0">{idx + 1}</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">{p.exercise_name}</p>
+                <p className="text-xs text-base-content/55 mt-0.5">
                   {p.target_sets} × {p.target_reps}
                   {p.target_weight > 0 ? ` @ ${p.target_weight}kg` : ""}
                   {p.rest_seconds > 0 ? `  ·  ${p.rest_seconds}s rest` : ""}

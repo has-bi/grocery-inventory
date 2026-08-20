@@ -27,7 +27,7 @@ export default function ExercisePicker({ exercises, alreadyAdded, onSelect, onCl
     <div className="modal modal-open modal-bottom sm:modal-middle">
       <div className="modal-box rounded-t-2xl sm:rounded-2xl p-0 flex flex-col max-h-[80vh]">
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
-          <h3 className="font-semibold">Pilih Exercise</h3>
+          <h3 className="font-semibold text-base">Pilih Exercise</h3>
           <button onClick={onClose} className="btn btn-ghost btn-sm btn-circle">
             <FiX size={18} />
           </button>
@@ -35,11 +35,11 @@ export default function ExercisePicker({ exercises, alreadyAdded, onSelect, onCl
 
         <div className="px-5 pb-3">
           <label className="input input-bordered flex items-center gap-2">
-            <FiSearch size={15} className="opacity-40 shrink-0" />
+            <FiSearch size={15} className="text-base-content/50 shrink-0" />
             <input
               autoFocus
               type="text"
-              placeholder="Cari exercise..."
+              placeholder="Cari exercise atau otot..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="grow text-sm bg-transparent focus:outline-none"
@@ -50,16 +50,16 @@ export default function ExercisePicker({ exercises, alreadyAdded, onSelect, onCl
         <div className="overflow-y-auto px-3 pb-6">
           {Object.entries(grouped).map(([group, items]) => (
             <div key={group} className="mb-2">
-              <p className="px-2 py-1.5 text-xs font-medium opacity-40 uppercase tracking-wider">{group}</p>
+              <p className="px-2 py-2 text-xs font-semibold text-base-content/50 uppercase tracking-wider">{group}</p>
               {items.map((ex) => (
                 <button
                   key={ex._id}
                   onClick={() => onSelect(ex.name)}
-                  className="btn btn-ghost btn-block justify-start font-normal h-auto py-2.5"
+                  className="btn btn-ghost btn-block justify-start font-normal h-auto py-2.5 text-left"
                 >
-                  <div className="text-left">
-                    <p className="text-sm">{ex.name}</p>
-                    <p className="text-xs opacity-40">{ex.equipment}</p>
+                  <div>
+                    <p className="text-sm font-medium">{ex.name}</p>
+                    <p className="text-xs text-base-content/55">{ex.equipment}</p>
                   </div>
                 </button>
               ))}
@@ -67,7 +67,7 @@ export default function ExercisePicker({ exercises, alreadyAdded, onSelect, onCl
           ))}
           {filtered.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-sm opacity-40">Tidak ditemukan</p>
+              <p className="text-sm text-base-content/50">Tidak ditemukan</p>
               {query && (
                 <button onClick={() => onSelect(query)} className="btn btn-primary btn-sm mt-3">
                   Tambah &ldquo;{query}&rdquo;
