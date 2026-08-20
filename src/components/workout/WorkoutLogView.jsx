@@ -1,11 +1,13 @@
 "use client";
 import { useState } from "react";
-import { useWorkoutLog, SESSIONS } from "@/hooks/useWorkoutLog";
+import { useWorkoutLog } from "@/hooks/useWorkoutLog";
 import { useRestTimer } from "@/hooks/useRestTimer";
 import SetInputModal from "./SetInputModal";
 import ExercisePicker from "./ExercisePicker";
 import RestTimerBar from "./RestTimerBar";
-import { FiPlus, FiTrash2, FiCheck, FiChevronDown, FiAlertCircle } from "react-icons/fi";
+import StreakCard from "./StreakCard";
+import TutorialSheet from "./TutorialSheet";
+import { FiPlus, FiTrash2, FiCheck, FiChevronDown, FiAlertCircle, FiHelpCircle } from "react-icons/fi";
 
 const DEFAULT_REST = 90;
 
@@ -78,7 +80,7 @@ function SetRow({ log, index, onDelete }) {
   );
 }
 
-function ExerciseCard({ name, sets, programInfo, lastPerformance, onLogSet, onDelete }) {
+function ExerciseCard({ name, sets, programInfo, lastPerformance, hasTutorial, onShowTutorial, onLogSet, onDelete }) {
   const [open, setOpen] = useState(true);
 
   const target = programInfo?.target_sets ?? 0;
@@ -95,42 +97,61 @@ function ExerciseCard({ name, sets, programInfo, lastPerformance, onLogSet, onDe
 
   return (
     <div className={`card overflow-hidden ${complete ? "border-emerald-200" : ""}`}>
-      <button
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-surface-raised/50 transition-colors"
-      >
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            {complete && (
-              <span className="shrink-0 h-4 w-4 rounded-full bg-emerald-600 flex items-center justify-center">
-                <FiCheck size={11} className="text-white" strokeWidth={3} />
-              </span>
-            )}
-            <p className="font-semibold text-sm text-ink truncate">{name}</p>
+      {/* Expand and tutorial are siblings — a button cannot nest inside a button */}
+      <div className="flex items-stretch">
+        <button
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="flex-1 min-w-0 flex items-center gap-3 pl-4 pr-2 py-3.5 text-left hover:bg-surface-raised/50 transition-colors"
+        >
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              {complete && (
+                <span className="shrink-0 h-4 w-4 rounded-full bg-emerald-600 flex items-center justify-center">
+                  <FiCheck size={11} className="text-white" strokeWidth={3} />
+                </span>
+              )}
+              <p className="font-semibold text-sm text-ink truncate">{name}</p>
+            </div>
+            <p className="text-xs text-ink-muted mt-1">
+              {targetLabel}
+              {programInfo?.rest_seconds > 0 && (
+                <span className="text-ink-faint"> · {programInfo.rest_seconds}s rest</span>
+              )}
+            </p>
           </div>
-          <p className="text-xs text-ink-muted mt-1">
-            {targetLabel}
-            {programInfo?.rest_seconds > 0 && (
-              <span className="text-ink-faint"> · {programInfo.rest_seconds}s rest</span>
-            )}
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
-          <div className="flex flex-col items-end gap-1.5">
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
             <span className="text-xs font-semibold text-ink tabular">
               {done}
               {target > 0 && <span className="text-ink-faint font-normal">/{target}</span>}
             </span>
             <SetDots done={done} target={target} />
           </div>
-          <FiChevronDown
-            size={16}
-            className={`text-ink-faint transition-transform ${open ? "rotate-180" : ""}`}
-          />
+        </button>
+
+        <div className="flex items-center gap-0.5 pr-3 pl-1 shrink-0">
+          {hasTutorial && (
+            <button
+              onClick={onShowTutorial}
+              aria-label={`Tutorial ${name}`}
+              className="btn btn-ghost btn-xs w-8"
+            >
+              <FiHelpCircle size={16} />
+            </button>
+          )}
+          <button
+            onClick={() => setOpen((o) => !o)}
+            aria-label={open ? "Tutup" : "Buka"}
+            className="btn btn-ghost btn-xs w-6"
+          >
+            <FiChevronDown
+              size={16}
+              className={`transition-transform ${open ? "rotate-180" : ""}`}
+            />
+          </button>
         </div>
-      </button>
+      </div>
 
       {open && (
         <div className="px-3 pb-3 space-y-2">
@@ -165,6 +186,7 @@ export default function WorkoutLogView() {
   const {
     loading, error, today, activeSession, setActiveSession, suggestedSession,
     todayByExercise, todayExerciseNames, sessionProgram, sessionProgress,
+    sessions, streak, weekStrip,
     exercises, recentSessions,
     getLastWeight, getLastReps, getLastPerformance, getPersonalBest,
     logSet, deleteSet,
@@ -173,6 +195,14 @@ export default function WorkoutLogView() {
   const timer = useRestTimer();
   const [loggingExercise, setLoggingExercise] = useState(null);
   const [showPicker, setShowPicker] = useState(false);
+  const [tutorialFor, setTutorialFor] = useState(null);
+
+  /** Tutorial content lives on the Exercises sheet, matched by name. */
+  const exerciseByName = Object.fromEntries(exercises.map((e) => [e.name, e]));
+  const hasTutorial = (name) => {
+    const e = exerciseByName[name];
+    return Boolean(e && (String(e.video_url || "").trim() || String(e.cues || "").trim()));
+  };
 
   const todayLabel = new Date(today + "T00:00:00").toLocaleDateString("id-ID", {
     weekday: "long", day: "numeric", month: "long",
@@ -218,16 +248,19 @@ export default function WorkoutLogView() {
         </div>
       )}
 
+      {/* Streak + this week, driven by the Schedule sheet */}
+      <StreakCard streak={streak} weekStrip={weekStrip} />
+
       {/* Session selector — scrolls rather than wrapping, keeping the header a fixed height */}
       <div>
         <div className="flex items-baseline justify-between mb-2">
           <p className="section-label">Sesi</p>
-          {!sessionProgress.done && suggestedSession && (
-            <span className="text-xs text-ink-faint">Disarankan: {suggestedSession}</span>
+          {suggestedSession && activeSession !== suggestedSession && (
+            <span className="text-xs text-ink-faint">Jadwal: {suggestedSession}</span>
           )}
         </div>
         <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {SESSIONS.map((s) => (
+          {sessions.map((s) => (
             <button
               key={s}
               onClick={() => setActiveSession(s)}
@@ -290,6 +323,8 @@ export default function WorkoutLogView() {
               sets={todayByExercise[name] || []}
               programInfo={sessionProgram.find((p) => p.exercise_name === name) ?? null}
               lastPerformance={getLastPerformance(name)}
+              hasTutorial={hasTutorial(name)}
+              onShowTutorial={() => setTutorialFor(name)}
               onLogSet={() => setLoggingExercise(name)}
               onDelete={deleteSet}
             />
@@ -362,6 +397,14 @@ export default function WorkoutLogView() {
           alreadyAdded={todayExerciseNames}
           onSelect={(name) => { setShowPicker(false); setLoggingExercise(name); }}
           onClose={() => setShowPicker(false)}
+        />
+      )}
+
+      {tutorialFor && (
+        <TutorialSheet
+          exercise={exerciseByName[tutorialFor] ?? { name: tutorialFor }}
+          programInfo={sessionProgram.find((p) => p.exercise_name === tutorialFor) ?? null}
+          onClose={() => setTutorialFor(null)}
         />
       )}
 
