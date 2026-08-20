@@ -1,5 +1,6 @@
 "use client";
 import { useRouter, usePathname } from "next/navigation";
+import { FiLogOut } from "react-icons/fi";
 
 export default function LogoutButton() {
   const router = useRouter();
@@ -13,8 +14,12 @@ export default function LogoutButton() {
   };
 
   return (
-    <button onClick={handleLogout} className="btn btn-ghost btn-xs">
-      Keluar
+    <button
+      onClick={handleLogout}
+      aria-label="Keluar"
+      className="btn btn-ghost btn-sm w-9 px-0"
+    >
+      <FiLogOut size={16} />
     </button>
   );
 }

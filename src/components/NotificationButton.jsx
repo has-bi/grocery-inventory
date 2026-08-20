@@ -30,7 +30,7 @@ export default function NotificationButton() {
       aria-label="Kirim notifikasi Telegram"
     >
       {loading ? (
-        <span className="loading loading-spinner loading-xs"></span>
+        <span className="h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
       ) : (
         <FiBell size={18} />
       )}

@@ -8,38 +8,51 @@ export default {
     "./src/hooks/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
-  },
-  plugins: [require("daisyui")],
-  daisyui: {
-    themes: [
-      {
-        light: {
-          "primary":          "#18181b",
-          "primary-content":  "#fafafa",
-          "secondary":        "#71717a",
-          "secondary-content":"#fafafa",
-          "accent":           "#18181b",
-          "accent-content":   "#fafafa",
-          "neutral":          "#3f3f46",
-          "neutral-content":  "#fafafa",
-          "base-100":         "#ffffff",
-          "base-200":         "#f4f4f5",
-          "base-300":         "#e4e4e7",
-          "base-content":     "#18181b",
-          "info":             "#0ea5e9",
-          "info-content":     "#ffffff",
-          "success":          "#22c55e",
-          "success-content":  "#ffffff",
-          "warning":          "#f59e0b",
-          "warning-content":  "#000000",
-          "error":            "#ef4444",
-          "error-content":    "#ffffff",
+    extend: {
+      colors: {
+        ink: {
+          DEFAULT: "#18181b",
+          soft: "#3f3f46",
+          muted: "#71717a",
+          faint: "#a1a1aa",
+        },
+        surface: {
+          DEFAULT: "#ffffff",
+          sunken: "#fafafa",
+          raised: "#f4f4f5",
+        },
+        line: {
+          DEFAULT: "#e4e4e7",
+          strong: "#d4d4d8",
         },
       },
-    ],
-    base: true,
-    styled: true,
-    utils: true,
+      borderRadius: {
+        xl: "0.75rem",
+        "2xl": "1rem",
+      },
+      spacing: {
+        safe: "env(safe-area-inset-bottom)",
+      },
+      keyframes: {
+        "slide-up": {
+          from: { transform: "translateY(100%)" },
+          to: { transform: "translateY(0)" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "pop-in": {
+          "0%": { transform: "scale(0.96)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+      },
+      animation: {
+        "slide-up": "slide-up 0.24s cubic-bezier(0.32, 0.72, 0, 1)",
+        "fade-in": "fade-in 0.18s ease-out",
+        "pop-in": "pop-in 0.18s cubic-bezier(0.32, 0.72, 0, 1)",
+      },
+    },
   },
+  plugins: [],
 };

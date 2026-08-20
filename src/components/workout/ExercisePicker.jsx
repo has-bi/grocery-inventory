@@ -1,83 +1,86 @@
 "use client";
 import { useState, useMemo } from "react";
-import { FiX, FiSearch } from "react-icons/fi";
+import Sheet from "@/components/ui/Sheet";
+import { FiSearch, FiPlus } from "react-icons/fi";
 
 export default function ExercisePicker({ exercises, alreadyAdded, onSelect, onClose }) {
   const [query, setQuery] = useState("");
 
-  const filtered = useMemo(() => {
-    const q = query.toLowerCase();
-    return exercises.filter(
+  const grouped = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const filtered = exercises.filter(
       (e) =>
         !alreadyAdded.includes(e.name) &&
-        (e.name.toLowerCase().includes(q) || e.muscle_group.toLowerCase().includes(q))
+        (!q ||
+          e.name.toLowerCase().includes(q) ||
+          (e.muscle_group || "").toLowerCase().includes(q))
     );
-  }, [exercises, alreadyAdded, query]);
 
-  const grouped = useMemo(() => {
     const map = {};
     filtered.forEach((e) => {
-      if (!map[e.muscle_group]) map[e.muscle_group] = [];
-      map[e.muscle_group].push(e);
+      (map[e.muscle_group || "Lainnya"] ||= []).push(e);
     });
     return map;
-  }, [filtered]);
+  }, [exercises, alreadyAdded, query]);
+
+  const count = Object.values(grouped).reduce((n, arr) => n + arr.length, 0);
+  const trimmed = query.trim();
 
   return (
-    <div className="modal modal-open modal-bottom sm:modal-middle">
-      <div className="modal-box rounded-t-2xl sm:rounded-2xl p-0 flex flex-col max-h-[80vh]">
-        <div className="flex items-center justify-between px-5 pt-5 pb-3">
-          <h3 className="font-semibold text-base">Pilih Exercise</h3>
-          <button onClick={onClose} className="btn btn-ghost btn-sm btn-circle">
-            <FiX size={18} />
-          </button>
+    <Sheet title="Pilih Exercise" onClose={onClose}>
+      <div className="sticky top-0 bg-surface pb-3 -mx-5 px-5 z-10">
+        <div className="relative">
+          <FiSearch
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint pointer-events-none"
+          />
+          <input
+            autoFocus
+            type="text"
+            placeholder="Cari nama atau otot..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="field pl-9"
+          />
         </div>
+      </div>
 
-        <div className="px-5 pb-3">
-          <label className="input input-bordered flex items-center gap-2">
-            <FiSearch size={15} className="text-base-content/50 shrink-0" />
-            <input
-              autoFocus
-              type="text"
-              placeholder="Cari exercise atau otot..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="grow text-sm bg-transparent focus:outline-none"
-            />
-          </label>
-        </div>
-
-        <div className="overflow-y-auto px-3 pb-6">
-          {Object.entries(grouped).map(([group, items]) => (
-            <div key={group} className="mb-2">
-              <p className="px-2 py-2 text-xs font-semibold text-base-content/50 uppercase tracking-wider">{group}</p>
+      <div className="pb-4">
+        {Object.entries(grouped).map(([group, items]) => (
+          <div key={group} className="mb-4 last:mb-0">
+            <p className="section-label mb-1.5">{group}</p>
+            <div className="space-y-0.5">
               {items.map((ex) => (
                 <button
                   key={ex._id}
                   onClick={() => onSelect(ex.name)}
-                  className="btn btn-ghost btn-block justify-start font-normal h-auto py-2.5 text-left"
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-surface-raised transition-colors"
                 >
-                  <div>
-                    <p className="text-sm font-medium">{ex.name}</p>
-                    <p className="text-xs text-base-content/55">{ex.equipment}</p>
-                  </div>
+                  <p className="text-sm font-medium text-ink">{ex.name}</p>
+                  {ex.equipment && (
+                    <p className="text-xs text-ink-muted mt-0.5">{ex.equipment}</p>
+                  )}
                 </button>
               ))}
             </div>
-          ))}
-          {filtered.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-sm text-base-content/50">Tidak ditemukan</p>
-              {query && (
-                <button onClick={() => onSelect(query)} className="btn btn-primary btn-sm mt-3">
-                  Tambah &ldquo;{query}&rdquo;
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+          </div>
+        ))}
+
+        {count === 0 && (
+          <div className="text-center py-10">
+            <p className="text-sm font-medium text-ink mb-1">Tidak ditemukan</p>
+            <p className="text-sm text-ink-muted mb-4">
+              {trimmed ? `Tidak ada hasil untuk "${trimmed}".` : "Semua exercise sudah ditambahkan."}
+            </p>
+            {trimmed && (
+              <button onClick={() => onSelect(trimmed)} className="btn btn-primary btn-md mx-auto">
+                <FiPlus size={15} />
+                Pakai &ldquo;{trimmed}&rdquo;
+              </button>
+            )}
+          </div>
+        )}
       </div>
-      <div className="modal-backdrop" onClick={onClose} />
-    </div>
+    </Sheet>
   );
 }

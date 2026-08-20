@@ -1,61 +1,31 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import { workoutApi, bodyApi } from "@/actions/sheets";
+import LineChart from "@/components/ui/LineChart";
+import { FiAward, FiAlertCircle } from "react-icons/fi";
 
-function MiniChart({ data, label }) {
-  if (data.length < 2) return null;
-  const W = 300;
-  const H = 100;
-  const PAD = { top: 8, right: 8, bottom: 20, left: 32 };
-  const chartW = W - PAD.left - PAD.right;
-  const chartH = H - PAD.top - PAD.bottom;
-
-  const minV = Math.min(...data.map((d) => d.value)) * 0.97;
-  const maxV = Math.max(...data.map((d) => d.value)) * 1.03;
-
-  const xScale = (i) => (i / (data.length - 1)) * chartW;
-  const yScale = (v) => chartH - ((v - minV) / (maxV - minV || 1)) * chartH;
-  const points = data.map((d, i) => `${xScale(i)},${yScale(d.value)}`).join(" ");
-
-  return (
-    <div>
-      <p className="text-xs text-base-content/55 mb-2">{label}</p>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
-        <g transform={`translate(${PAD.left},${PAD.top})`}>
-          <line x1={0} y1={0} x2={chartW} y2={0} stroke="currentColor" strokeOpacity={0.07} strokeWidth={1} />
-          <line x1={0} y1={chartH} x2={chartW} y2={chartH} stroke="currentColor" strokeOpacity={0.07} strokeWidth={1} />
-          <text x={-4} y={4} textAnchor="end" fontSize={9} fill="currentColor" fillOpacity={0.45}>{maxV.toFixed(1)}</text>
-          <text x={-4} y={chartH + 4} textAnchor="end" fontSize={9} fill="currentColor" fillOpacity={0.45}>{minV.toFixed(1)}</text>
-          <polyline points={points} fill="none" stroke="currentColor" strokeOpacity={0.9} strokeWidth={1.5} strokeLinejoin="round" />
-          {data.map((d, i) => (
-            <circle key={i} cx={xScale(i)} cy={yScale(d.value)} r={3} fill="currentColor" fillOpacity={0.9} />
-          ))}
-          {data.map((d, i) => {
-            if (i !== 0 && i !== data.length - 1) return null;
-            return (
-              <text key={i} x={xScale(i)} y={chartH + 14} textAnchor={i === 0 ? "start" : "end"} fontSize={8} fill="currentColor" fillOpacity={0.45}>
-                {new Date(d.date + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
-              </text>
-            );
-          })}
-        </g>
-      </svg>
-    </div>
-  );
+function startOfWeek(d) {
+  const date = new Date(d);
+  const day = (date.getDay() + 6) % 7; // Monday-first
+  date.setDate(date.getDate() - day);
+  date.setHours(0, 0, 0, 0);
+  return date;
 }
 
 export default function SummaryView() {
   const [logs, setLogs] = useState([]);
-  const [bodyMetrics, setBodyMetrics] = useState([]);
+  const [body, setBody] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedExercise, setSelectedExercise] = useState("");
+  const [error, setError] = useState(null);
+  const [selected, setSelected] = useState("");
 
   useEffect(() => {
     Promise.all([workoutApi.getAll(), bodyApi.getAll()])
       .then(([l, b]) => {
         setLogs(l);
-        setBodyMetrics(b.sort((a, b) => a.date.localeCompare(b.date)));
+        setBody([...b].sort((a, b2) => a.date.localeCompare(b2.date)));
       })
+      .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
 
@@ -65,127 +35,195 @@ export default function SummaryView() {
   );
 
   useEffect(() => {
-    if (exerciseNames.length && !selectedExercise) setSelectedExercise(exerciseNames[0]);
-  }, [exerciseNames, selectedExercise]);
+    if (exerciseNames.length && !selected) setSelected(exerciseNames[0]);
+  }, [exerciseNames, selected]);
 
-  const exerciseStats = useMemo(() => {
-    const map = {};
-    logs.forEach((l) => {
-      if (!map[l.exercise_name]) map[l.exercise_name] = { maxWeight: 0, totalSets: 0, totalRpe: 0, rpeCount: 0 };
-      const s = map[l.exercise_name];
-      if (l.weight > s.maxWeight) s.maxWeight = l.weight;
-      s.totalSets += 1;
-      if (l.rpe) { s.totalRpe += l.rpe; s.rpeCount += 1; }
-    });
-    return map;
+  /** Sessions this week vs last, so the headline number has a reference point. */
+  const weekly = useMemo(() => {
+    const thisWeek = startOfWeek(new Date());
+    const lastWeek = new Date(thisWeek);
+    lastWeek.setDate(lastWeek.getDate() - 7);
+
+    const sessionsIn = (from, to) =>
+      new Set(
+        logs
+          .filter((l) => {
+            const d = new Date(l.date + "T00:00:00");
+            return d >= from && (!to || d < to);
+          })
+          .map((l) => l.date + l.session)
+      ).size;
+
+    return { current: sessionsIn(thisWeek, null), previous: sessionsIn(lastWeek, thisWeek) };
   }, [logs]);
 
+  const stats = useMemo(() => {
+    if (!selected) return null;
+    const mine = logs.filter((l) => l.exercise_name === selected);
+    if (!mine.length) return null;
+
+    const best = mine.reduce((b, l) => (l.weight > b.weight ? l : b), mine[0]);
+    const rpes = mine.filter((l) => l.rpe > 0);
+
+    return {
+      best,
+      totalSets: mine.length,
+      avgRpe: rpes.length ? (rpes.reduce((s, l) => s + l.rpe, 0) / rpes.length).toFixed(1) : null,
+      volume: mine.reduce((s, l) => s + l.weight * l.reps, 0),
+    };
+  }, [logs, selected]);
+
   const exerciseProgress = useMemo(() => {
-    if (!selectedExercise) return [];
+    if (!selected) return [];
     const byDate = {};
     logs
-      .filter((l) => l.exercise_name === selectedExercise)
+      .filter((l) => l.exercise_name === selected)
       .forEach((l) => {
         if (!byDate[l.date] || l.weight > byDate[l.date]) byDate[l.date] = l.weight;
       });
     return Object.entries(byDate)
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([date, value]) => ({ date, value }));
-  }, [logs, selectedExercise]);
+  }, [logs, selected]);
 
   const bodyProgress = useMemo(
-    () => bodyMetrics.map((m) => ({ date: m.date, value: m.weight })),
-    [bodyMetrics]
+    () => body.filter((m) => m.weight > 0).map((m) => ({ date: m.date, value: m.weight })),
+    [body]
   );
 
-  if (loading) return (
-    <div className="flex justify-center items-center h-64 flex-col gap-3">
-      <span className="loading loading-spinner loading-md" />
-      <p className="text-sm text-base-content/50">Loading...</p>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+        <div className="h-8 w-32 rounded-lg bg-surface-raised animate-pulse" />
+        <div className="h-24 w-full rounded-2xl bg-surface-raised animate-pulse" />
+        <div className="h-48 w-full rounded-2xl bg-surface-raised animate-pulse" />
+      </div>
+    );
+  }
 
-  const stats = exerciseStats[selectedExercise];
+  const totalSessions = new Set(logs.map((l) => l.date + l.session)).size;
+  const totalVolume = logs.reduce((s, l) => s + l.weight * l.reps, 0);
+  const weekDelta = weekly.current - weekly.previous;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-      <div>
-        <h2 className="text-2xl font-light">Progress</h2>
-        <p className="text-sm text-base-content/60 mt-0.5">Ringkasan perkembangan latihan</p>
-      </div>
+    <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
+      <header>
+        <h1 className="page-title">Progress</h1>
+        <p className="page-sub">Ringkasan perkembangan latihan</p>
+      </header>
 
-      {/* Top stats */}
-      <div className="overflow-x-auto">
-        <div className="stats stats-horizontal w-full min-w-[280px] bg-base-100 border border-base-300 rounded-2xl shadow-none">
-          {[
-            { label: "Sesi", value: new Set(logs.map((l) => l.date + l.session)).size },
-            { label: "Total Set", value: logs.length },
-            { label: "Exercise", value: exerciseNames.length },
-          ].map(({ label, value }) => (
-            <div key={label} className="stat">
-              <div className="stat-value text-2xl font-light tabular-nums">{value}</div>
-              <div className="stat-title text-xs">{label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Body weight trend */}
-      {bodyProgress.length >= 2 && (
-        <div className="card card-compact bg-base-100 border border-base-300">
-          <div className="card-body">
-            <p className="text-xs font-medium text-base-content/60 mb-1">Tren Berat Badan</p>
-            <MiniChart data={bodyProgress} label="kg" />
-          </div>
+      {error && (
+        <div className="flex items-start gap-2.5 rounded-xl bg-red-50 border border-red-200 px-3.5 py-3">
+          <FiAlertCircle size={16} className="text-red-600 shrink-0 mt-0.5" />
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
-      {/* Exercise progress */}
-      {exerciseNames.length > 0 && (
-        <div className="card card-compact bg-base-100 border border-base-300">
-          <div className="card-body gap-4">
-            <div>
-              <p className="text-xs font-medium text-base-content/60 mb-2">Progress per Exercise</p>
-              <select
-                value={selectedExercise}
-                onChange={(e) => setSelectedExercise(e.target.value)}
-                className="select select-bordered select-sm w-full"
-              >
-                {exerciseNames.map((n) => <option key={n} value={n}>{n}</option>)}
-              </select>
+      {logs.length === 0 ? (
+        <div className="card p-8 text-center">
+          <p className="text-sm font-medium text-ink mb-1">Belum ada data latihan</p>
+          <p className="text-sm text-ink-muted">Mulai catat set di tab Log buat lihat progresnya.</p>
+        </div>
+      ) : (
+        <>
+          <div className="card flex divide-x divide-line">
+            <div className="flex-1 px-4 py-3.5">
+              <p className="text-xs text-ink-muted mb-1">Minggu ini</p>
+              <p className="text-2xl font-semibold text-ink tabular leading-none flex items-baseline gap-1.5">
+                {weekly.current}
+                <span className="text-sm font-normal text-ink-faint">sesi</span>
+                {weekly.previous > 0 && weekDelta !== 0 && (
+                  <span
+                    className={`text-xs font-semibold tabular ${
+                      weekDelta > 0 ? "text-emerald-600" : "text-amber-600"
+                    }`}
+                  >
+                    {weekDelta > 0 ? "+" : ""}
+                    {weekDelta}
+                  </span>
+                )}
+              </p>
+              <p className="text-xs text-ink-faint mt-1.5">
+                {weekly.previous > 0 ? "vs pekan lalu" : "pekan pertama"}
+              </p>
             </div>
+            <div className="flex-1 px-4 py-3.5">
+              <p className="text-xs text-ink-muted mb-1">Total sesi</p>
+              <p className="text-2xl font-semibold text-ink tabular leading-none">{totalSessions}</p>
+              <p className="text-xs text-ink-faint mt-1.5 tabular">{logs.length} set</p>
+            </div>
+            <div className="flex-1 px-4 py-3.5 min-w-0">
+              <p className="text-xs text-ink-muted mb-1">Volume</p>
+              <p className="text-2xl font-semibold text-ink tabular leading-none truncate">
+                {Math.round(totalVolume / 1000).toLocaleString("id-ID")}
+                <span className="text-sm font-normal text-ink-faint ml-1">ton</span>
+              </p>
+              <p className="text-xs text-ink-faint mt-1.5">total angkatan</p>
+            </div>
+          </div>
 
-            {stats && (
-              <div className="overflow-x-auto">
-                <div className="stats stats-horizontal w-full min-w-[280px] border border-base-300 rounded-xl shadow-none">
-                  {[
-                    { label: "Max Beban", value: `${stats.maxWeight} kg` },
-                    { label: "Total Set", value: stats.totalSets },
-                    { label: "Avg RPE", value: stats.rpeCount ? (stats.totalRpe / stats.rpeCount).toFixed(1) : "—" },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="stat py-3">
-                      <div className="stat-value text-lg font-light">{value}</div>
-                      <div className="stat-title text-xs">{label}</div>
-                    </div>
+          {bodyProgress.length >= 2 && (
+            <div className="card p-4">
+              <p className="text-sm font-semibold text-ink mb-3">Tren Berat Badan</p>
+              <LineChart data={bodyProgress} unit="kg" />
+            </div>
+          )}
+
+          {exerciseNames.length > 0 && (
+            <div className="card p-4 space-y-4">
+              <div>
+                <label htmlFor="ex-select" className="field-label">Progress per exercise</label>
+                <select
+                  id="ex-select"
+                  value={selected}
+                  onChange={(e) => setSelected(e.target.value)}
+                  className="field"
+                >
+                  {exerciseNames.map((n) => (
+                    <option key={n} value={n}>{n}</option>
                   ))}
-                </div>
+                </select>
               </div>
-            )}
 
-            {exerciseProgress.length >= 2 && (
-              <MiniChart data={exerciseProgress} label="kg (max per sesi)" />
-            )}
-            {exerciseProgress.length < 2 && exerciseProgress.length > 0 && (
-              <p className="text-xs text-base-content/50 text-center py-2">Log minimal 2 sesi untuk melihat grafik</p>
-            )}
-          </div>
-        </div>
-      )}
+              {stats && (
+                <div className="flex divide-x divide-line rounded-xl bg-surface-raised">
+                  <div className="flex-1 px-3 py-3">
+                    <p className="text-xs text-ink-muted mb-1 flex items-center gap-1">
+                      <FiAward size={11} />
+                      Terberat
+                    </p>
+                    <p className="text-lg font-semibold text-ink tabular leading-none">
+                      {stats.best.weight}
+                      <span className="text-xs font-normal text-ink-faint ml-0.5">kg</span>
+                    </p>
+                    <p className="text-xs text-ink-faint mt-1 tabular">× {stats.best.reps} reps</p>
+                  </div>
+                  <div className="flex-1 px-3 py-3">
+                    <p className="text-xs text-ink-muted mb-1">Total set</p>
+                    <p className="text-lg font-semibold text-ink tabular leading-none">{stats.totalSets}</p>
+                  </div>
+                  <div className="flex-1 px-3 py-3">
+                    <p className="text-xs text-ink-muted mb-1">Rata-rata RPE</p>
+                    <p className="text-lg font-semibold text-ink tabular leading-none">
+                      {stats.avgRpe ?? "—"}
+                    </p>
+                  </div>
+                </div>
+              )}
 
-      {logs.length === 0 && (
-        <div className="text-center py-12 text-base-content/50 text-sm">
-          Belum ada data latihan. Mulai log di tab Log!
-        </div>
+              {exerciseProgress.length >= 2 ? (
+                <div>
+                  <p className="text-xs text-ink-muted mb-1">Beban maksimum per sesi (kg)</p>
+                  <LineChart data={exerciseProgress} unit="kg" height={140} />
+                </div>
+              ) : (
+                <p className="text-sm text-ink-muted text-center py-6">
+                  Butuh minimal 2 sesi buat lihat grafiknya.
+                </p>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

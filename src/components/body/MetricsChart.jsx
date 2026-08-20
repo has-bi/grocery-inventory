@@ -1,68 +1,87 @@
 "use client";
+import { useState } from "react";
+import LineChart from "@/components/ui/LineChart";
+
+const RANGES = [
+  { label: "1B", days: 30 },
+  { label: "3B", days: 90 },
+  { label: "Semua", days: Infinity },
+];
+
+const SERIES = [
+  { key: "weight", label: "Berat", unit: "kg" },
+  { key: "waist", label: "Pinggang", unit: "cm" },
+  { key: "bmi", label: "BMI", unit: "" },
+];
 
 export default function MetricsChart({ metrics }) {
-  const data = [...metrics].reverse().slice(-12);
-  if (data.length < 2) return null;
+  const [range, setRange] = useState(RANGES[1]);
+  const [series, setSeries] = useState(SERIES[0]);
 
-  const W = 320;
-  const H = 120;
-  const PAD = { top: 10, right: 10, bottom: 24, left: 36 };
+  // `metrics` arrives newest-first; charts read left-to-right in time order.
+  const ascending = [...metrics].reverse();
 
-  const chartW = W - PAD.left - PAD.right;
-  const chartH = H - PAD.top - PAD.bottom;
+  const cutoff = Number.isFinite(range.days)
+    ? Date.now() - range.days * 86400000
+    : -Infinity;
 
-  const weights = data.map((d) => d.weight);
-  const minW = Math.min(...weights) - 1;
-  const maxW = Math.max(...weights) + 1;
+  const data = ascending
+    .filter((m) => new Date(m.date + "T00:00:00").getTime() >= cutoff)
+    .map((m) => ({ date: m.date, value: m[series.key] }))
+    .filter((d) => d.value > 0);
 
-  const xScale = (i) => (i / (data.length - 1)) * chartW;
-  const yScale = (v) => chartH - ((v - minW) / (maxW - minW)) * chartH;
-
-  const points = data.map((d, i) => `${xScale(i)},${yScale(d.weight)}`).join(" ");
-  const polyFill = `${xScale(0)},${chartH} ` + points + ` ${xScale(data.length - 1)},${chartH}`;
-
-  const formatDate = (d) =>
-    new Date(d + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+  const first = data[0]?.value;
+  const last = data[data.length - 1]?.value;
+  const change = first != null && last != null ? Math.round((last - first) * 10) / 10 : null;
 
   return (
-    <div className="card card-compact bg-base-100 border border-base-300">
-      <div className="card-body">
-        <p className="text-xs font-medium text-base-content/60 mb-2">Tren Berat Badan</p>
-        <div className="overflow-x-auto">
-          <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: "280px" }}>
-            <g transform={`translate(${PAD.left},${PAD.top})`}>
-              {[0, 0.5, 1].map((t) => {
-                const y = t * chartH;
-                const val = maxW - t * (maxW - minW);
-                return (
-                  <g key={t}>
-                    <line x1={0} y1={y} x2={chartW} y2={y} stroke="currentColor" strokeOpacity={0.08} strokeWidth={1} />
-                    <text x={-4} y={y + 3} textAnchor="end" fontSize={9} fill="currentColor" fillOpacity={0.45}>
-                      {val.toFixed(1)}
-                    </text>
-                  </g>
-                );
-              })}
-
-              <polygon points={polyFill} fill="currentColor" fillOpacity={0.06} />
-              <polyline points={points} fill="none" stroke="currentColor" strokeOpacity={0.9} strokeWidth={1.5} strokeLinejoin="round" />
-
-              {data.map((d, i) => (
-                <circle key={i} cx={xScale(i)} cy={yScale(d.weight)} r={3} fill="currentColor" fillOpacity={0.9} />
-              ))}
-
-              {data.map((d, i) => {
-                const showLabel = i === 0 || i === data.length - 1 || i === Math.floor(data.length / 2);
-                if (!showLabel) return null;
-                return (
-                  <text key={i} x={xScale(i)} y={chartH + 14} textAnchor="middle" fontSize={8} fill="currentColor" fillOpacity={0.45}>
-                    {formatDate(d.date)}
-                  </text>
-                );
-              })}
-            </g>
-          </svg>
+    <div className="card p-4">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <p className="text-sm font-semibold text-ink">Tren {series.label}</p>
+          {change != null && data.length >= 2 && (
+            <p className="text-xs text-ink-muted mt-0.5 tabular">
+              <span className={change < 0 ? "text-emerald-600 font-medium" : change > 0 ? "text-amber-600 font-medium" : ""}>
+                {change > 0 ? "+" : ""}{change} {series.unit}
+              </span>{" "}
+              dalam periode ini
+            </p>
+          )}
         </div>
+
+        <div className="flex gap-0.5 bg-surface-raised rounded-lg p-0.5 shrink-0">
+          {RANGES.map((r) => (
+            <button
+              key={r.label}
+              onClick={() => setRange(r)}
+              className={`h-7 px-2 rounded-md text-xs font-medium transition-colors ${
+                range.label === r.label ? "bg-surface text-ink shadow-sm" : "text-ink-muted hover:text-ink"
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {data.length >= 2 ? (
+        <LineChart data={data} unit={series.unit} />
+      ) : (
+        <p className="text-sm text-ink-muted text-center py-10">
+          Butuh minimal 2 pengukuran di periode ini.
+        </p>
+      )}
+
+      <div className="flex gap-1.5 mt-3">
+        {SERIES.map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setSeries(s)}
+            className={`btn btn-xs px-2.5 ${series.key === s.key ? "btn-primary" : "btn-secondary"}`}
+          >
+            {s.label}
+          </button>
+        ))}
       </div>
     </div>
   );
