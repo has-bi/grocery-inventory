@@ -1,3 +1,5 @@
+import { normalizeReps } from "@/lib/reps";
+
 function deserializeBodyMetric(row) {
   return {
     ...row,
@@ -23,7 +25,11 @@ function deserializeWorkoutLog(row) {
 function deserializeProgram(row) {
   return {
     ...row,
+    // The Programs sheet shipped with an `id` header instead of `_id`; accept
+    // either so rows keep a stable React key on sheets that predate the fix.
+    _id: row._id ?? row.id ?? "",
     target_sets: parseInt(row.target_sets) || 0,
+    target_reps: normalizeReps(row.target_reps),
     rest_seconds: parseInt(row.rest_seconds) || 0,
     target_weight: parseFloat(row.target_weight) || 0,
     sort_order: parseInt(row.sort_order) || 0,

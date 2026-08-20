@@ -53,6 +53,20 @@ function setupSheets() {
     }
   }
 
+  // Rep ranges like "10-12" are read as dates unless the column is plain text.
+  // This must happen before seedPrograms(), or the seeded values are coerced
+  // the moment they are written.
+  const programs = ss.getSheetByName("Programs");
+  if (programs) {
+    const headers = programs.getRange(1, 1, 1, programs.getLastColumn()).getValues()[0];
+    const repsIdx = headers.indexOf("target_reps");
+    if (repsIdx !== -1) {
+      programs
+        .getRange(2, repsIdx + 1, Math.max(programs.getMaxRows() - 1, 1), 1)
+        .setNumberFormat("@");
+    }
+  }
+
   Logger.log("Setup complete: BodyMetrics, Exercises, WorkoutLogs, Programs, Schedule");
 }
 
@@ -238,6 +252,70 @@ function seedPrograms() {
   });
 
   Logger.log("Seeded " + programs.length + " program entries.");
+}
+
+/**
+ * Repairs the Programs sheet. Safe to run repeatedly.
+ *
+ * Google Sheets coerces a rep range like "10-12" into the date 12 October and
+ * displays it back as "10-12", so the sheet looks right while getValues()
+ * hands the API a Date that serialises to "2026-10-12".
+ *
+ * This does three things:
+ *   1. renames a legacy `id` header to `_id`, which the app looks for
+ *   2. converts already-coerced date cells back to "M-D" text
+ *   3. formats target_reps as plain text so Sheets stops converting new edits
+ */
+function repairProgramSheet() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName("Programs");
+  if (!sheet) {
+    Logger.log("No Programs sheet found.");
+    return;
+  }
+
+  const lastCol = sheet.getLastColumn();
+  const lastRow = sheet.getLastRow();
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+
+  // 1. Legacy header name.
+  const idIdx = headers.indexOf("id");
+  if (idIdx !== -1 && headers.indexOf("_id") === -1) {
+    sheet.getRange(1, idIdx + 1).setValue("_id");
+    Logger.log("Renamed header 'id' -> '_id'.");
+  }
+
+  const repsIdx = headers.indexOf("target_reps");
+  if (repsIdx === -1) {
+    Logger.log("No target_reps column — nothing further to repair.");
+    return;
+  }
+
+  const repsCol = repsIdx + 1;
+
+  // 2. Undo the coercion on existing rows, reading raw values to spot Dates.
+  let fixed = 0;
+  if (lastRow > 1) {
+    const range = sheet.getRange(2, repsCol, lastRow - 1, 1);
+    const values = range.getValues();
+
+    const repaired = values.map(([v]) => {
+      if (v instanceof Date && !isNaN(v)) {
+        fixed++;
+        return [`${v.getMonth() + 1}-${v.getDate()}`];
+      }
+      return [v === "" || v === null ? "" : String(v)];
+    });
+
+    // Format before writing, otherwise the repaired text is re-coerced on write.
+    range.setNumberFormat("@");
+    range.setValues(repaired);
+  }
+
+  // 3. Keep the whole column as text so future edits stay literal.
+  sheet.getRange(2, repsCol, Math.max(sheet.getMaxRows() - 1, 1), 1).setNumberFormat("@");
+
+  Logger.log("Repaired " + fixed + " coerced rep ranges; target_reps is now plain text.");
 }
 
 /**
