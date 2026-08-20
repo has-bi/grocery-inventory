@@ -5,9 +5,9 @@ import MetricsChart from "./MetricsChart";
 import { FiTrash2, FiPlus, FiX, FiArrowDown, FiArrowUp, FiAlertCircle } from "react-icons/fi";
 
 const BMI_BANDS = [
-  { max: 18.5, label: "Kurus", tone: "text-sky-600" },
-  { max: 25, label: "Normal", tone: "text-emerald-600" },
-  { max: 30, label: "Overweight", tone: "text-amber-600" },
+  { max: 18.5, label: "Kurus", tone: "text-sky-700" },
+  { max: 25, label: "Normal", tone: "text-emerald-700" },
+  { max: 30, label: "Overweight", tone: "text-amber-700" },
   { max: Infinity, label: "Obesitas", tone: "text-red-600" },
 ];
 
@@ -42,7 +42,7 @@ function Stat({ label, value, unit, delta, tone, caption }) {
       {moved ? (
         <p
           className={`text-xs font-medium mt-1.5 flex items-center gap-0.5 tabular ${
-            down ? "text-emerald-600" : "text-amber-600"
+            down ? "text-emerald-700" : "text-amber-700"
           }`}
         >
           {down ? <FiArrowDown size={11} /> : <FiArrowUp size={11} />}
@@ -105,7 +105,7 @@ export default function BodyMetricsView() {
 
       {error && (
         <div className="flex items-start gap-2.5 rounded-xl bg-red-50 border border-red-200 px-3.5 py-3">
-          <FiAlertCircle size={16} className="text-red-600 shrink-0 mt-0.5" />
+          <FiAlertCircle size={16} className="text-red-700 shrink-0 mt-0.5" />
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
@@ -203,7 +203,7 @@ export default function BodyMetricsView() {
                   {d != null && Math.abs(d) >= 0.05 && (
                     <span
                       className={`text-xs font-semibold tabular shrink-0 ${
-                        d < 0 ? "text-emerald-600" : "text-amber-600"
+                        d < 0 ? "text-emerald-700" : "text-amber-700"
                       }`}
                     >
                       {d > 0 ? "+" : ""}
@@ -213,7 +213,7 @@ export default function BodyMetricsView() {
                   <button
                     onClick={() => deleteMetric(m._id)}
                     aria-label={`Hapus pengukuran ${formatDate(m.date)}`}
-                    className="btn btn-ghost btn-xs w-8 shrink-0"
+                    className="btn btn-ghost btn-icon shrink-0"
                   >
                     <FiTrash2 size={13} />
                   </button>

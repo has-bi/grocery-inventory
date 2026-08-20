@@ -54,7 +54,7 @@ export default function ProgramView() {
 
       {error && (
         <div className="flex items-start gap-2.5 rounded-xl bg-red-50 border border-red-200 px-3.5 py-3">
-          <FiAlertCircle size={16} className="text-red-600 shrink-0 mt-0.5" />
+          <FiAlertCircle size={16} className="text-red-700 shrink-0 mt-0.5" />
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
@@ -70,7 +70,7 @@ export default function ProgramView() {
               key={day}
               onClick={() => setActiveDay(day)}
               aria-pressed={active}
-              className={`btn btn-sm shrink-0 whitespace-nowrap ${
+              className={`btn btn-md shrink-0 whitespace-nowrap ${
                 active ? "btn-primary" : "btn-secondary"
               } ${rest && !active ? "text-ink-faint" : ""}`}
             >
@@ -117,7 +117,7 @@ export default function ProgramView() {
                   <button
                     onClick={() => setTutorialFor(p.exercise_name)}
                     aria-label={`Tutorial ${p.exercise_name}`}
-                    className="btn btn-ghost btn-xs w-8 shrink-0"
+                    className="btn btn-ghost btn-icon shrink-0"
                   >
                     <FiHelpCircle size={16} />
                   </button>

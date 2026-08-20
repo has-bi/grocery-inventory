@@ -56,11 +56,14 @@
     @apply bg-red-50 text-red-600 border border-red-200 hover:bg-red-100;
   }
 
-  /* Sizes — all meet the 44px minimum touch target except -xs (icon-only, padded) */
-  .btn-lg { @apply h-14 px-6 text-base; }
-  .btn-md { @apply h-11 px-4 text-sm; }
-  .btn-sm { @apply h-9  px-3 text-sm; }
-  .btn-xs { @apply h-8  px-2 text-xs; }
+  /* Sizes. Primary controls use -md (44px, the Apple HIG touch minimum);
+     -icon is for square icon-only buttons that sit in dense rows where a full
+     44px would overlap its neighbour. All clear the WCAG 2.2 AA floor of 24px. */
+  .btn-lg   { @apply h-14 px-6 text-base; }
+  .btn-md   { @apply h-11 px-4 text-sm; }
+  .btn-sm   { @apply h-9  px-3 text-sm; }
+  .btn-xs   { @apply h-8  px-2 text-xs; }
+  .btn-icon { @apply h-10 w-10 p-0 shrink-0; }
 
   /* ---- Surfaces ---- */
   .card {
@@ -68,8 +71,11 @@
   }
 
   /* ---- Form controls ---- */
+  /* 16px is deliberate: iOS Safari zooms the viewport when focusing an input
+     smaller than that, which is why pinch-zoom never needed disabling. */
   .field {
-    @apply w-full h-11 px-3 rounded-xl bg-surface border border-line text-sm text-ink
+    @apply w-full h-11 px-3 rounded-xl bg-surface border border-line text-ink
+           text-base sm:text-sm
            placeholder:text-ink-faint
            focus:border-ink focus:ring-0 focus:outline-none transition-colors;
   }

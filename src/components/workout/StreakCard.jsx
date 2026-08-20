@@ -13,7 +13,7 @@ const STATUS = {
     label: "istirahat",
   },
   missed: {
-    ring: "bg-surface text-red-400 border-red-200",
+    ring: "bg-surface text-red-600 border-red-200",
     icon: <FiX size={13} strokeWidth={3} />,
     label: "bolos",
   },
@@ -54,7 +54,7 @@ export default function StreakCard({ streak, weekStrip }) {
           <p className="text-xs text-ink-muted mb-1">Hari ini</p>
           <p
             className={`text-sm font-semibold truncate ${
-              todayPlan?.isRest ? "text-ink-muted" : trainedToday ? "text-emerald-600" : "text-ink"
+              todayPlan?.isRest ? "text-ink-muted" : trainedToday ? "text-emerald-700" : "text-ink"
             }`}
           >
             {headline}

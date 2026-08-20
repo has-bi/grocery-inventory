@@ -5,7 +5,9 @@ import LogoutButton from "./LogoutButton";
 export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <header className="sticky top-0 z-30 bg-surface/95 backdrop-blur border-b border-line">
+      {/* pt-safe: installed to the home screen the page runs under the status
+          bar, so the header reserves that inset itself. */}
+      <header className="sticky top-0 z-30 bg-surface/95 backdrop-blur border-b border-line pt-[env(safe-area-inset-top)]">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
           <span className="text-sm font-semibold tracking-tight text-ink">Latihan</span>
           <div className="flex items-center gap-1">

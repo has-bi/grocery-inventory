@@ -41,7 +41,7 @@ export default function MetricsChart({ metrics }) {
           <p className="text-sm font-semibold text-ink">Tren {series.label}</p>
           {change != null && data.length >= 2 && (
             <p className="text-xs text-ink-muted mt-0.5 tabular">
-              <span className={change < 0 ? "text-emerald-600 font-medium" : change > 0 ? "text-amber-600 font-medium" : ""}>
+              <span className={change < 0 ? "text-emerald-700 font-medium" : change > 0 ? "text-amber-700 font-medium" : ""}>
                 {change > 0 ? "+" : ""}{change} {series.unit}
               </span>{" "}
               dalam periode ini
@@ -54,7 +54,7 @@ export default function MetricsChart({ metrics }) {
             <button
               key={r.label}
               onClick={() => setRange(r)}
-              className={`h-7 px-2 rounded-md text-xs font-medium transition-colors ${
+              className={`h-10 px-3 rounded-md text-xs font-medium transition-colors ${
                 range.label === r.label ? "bg-surface text-ink shadow-sm" : "text-ink-muted hover:text-ink"
               }`}
             >
@@ -77,7 +77,7 @@ export default function MetricsChart({ metrics }) {
           <button
             key={s.key}
             onClick={() => setSeries(s)}
-            className={`btn btn-xs px-2.5 ${series.key === s.key ? "btn-primary" : "btn-secondary"}`}
+            className={`btn h-10 px-3.5 text-xs ${series.key === s.key ? "btn-primary" : "btn-secondary"}`}
           >
             {s.label}
           </button>
