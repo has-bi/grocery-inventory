@@ -137,6 +137,51 @@ function seedPrograms() {
   Logger.log("Seeded " + programs.length + " program entries.");
 }
 
+/**
+ * One-time migration: copy weight history from old Health sheet → BodyMetrics.
+ * Run once from the GAS editor after setupSheets().
+ */
+function migrateHealthToBodyMetrics() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const healthSheet = ss.getSheetByName("Health");
+  const bodySheet = ss.getSheetByName("BodyMetrics");
+
+  if (!healthSheet || !bodySheet) {
+    Logger.log("Health or BodyMetrics sheet not found.");
+    return;
+  }
+
+  const healthData = healthSheet.getDataRange().getValues();
+  const tz = Session.getScriptTimeZone();
+
+  // De-duplicate by date — keep last recorded weight per day
+  const byDate = {};
+  for (let i = 1; i < healthData.length; i++) {
+    let date = healthData[i][0];
+    const weight = parseFloat(healthData[i][1]);
+    if (!date || !weight || weight <= 0) continue;
+    if (date instanceof Date) date = Utilities.formatDate(date, tz, "yyyy-MM-dd");
+    byDate[String(date).substring(0, 10)] = weight;
+  }
+
+  const existingDates = bodySheet.getLastRow() > 1
+    ? bodySheet.getRange(2, 2, bodySheet.getLastRow() - 1, 1).getValues().flat().map(String)
+    : [];
+
+  const HEIGHT = 173;
+  let count = 0;
+
+  Object.keys(byDate).sort().forEach((date) => {
+    if (existingDates.includes(date)) return;
+    const weight = byDate[date];
+    const bmi = Math.round((weight / Math.pow(HEIGHT / 100, 2)) * 10) / 10;
+    bodySheet.appendRow([Utilities.getUuid(), date, weight, 0, HEIGHT, bmi]);
+    count++;
+  });
+
+  Logger.log("migrateHealthToBodyMetrics: " + count + " entries added.");
+}
+
 function doGet(e) {
   try {
     const { action, sheet: sheetName } = e.parameter;
