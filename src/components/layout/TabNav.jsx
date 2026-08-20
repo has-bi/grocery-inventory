@@ -3,21 +3,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
-  { label: "Grocery", href: "/" },
-  { label: "Tasks", href: "/tasks" },
-  { label: "Intermitten", href: "/health" },
+  { label: "Log",     href: "/log" },
+  { label: "Body",    href: "/body" },
+  { label: "Program", href: "/program" },
+  { label: "Summary", href: "/summary" },
 ];
 
 export default function TabNav() {
   const pathname = usePathname();
-
   if (pathname === "/login") return null;
 
   return (
     <div className="hidden sm:flex -mb-px">
       {TABS.map((tab) => {
-        const isActive =
-          tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
+        const isActive = pathname.startsWith(tab.href);
         return (
           <Link
             key={tab.href}

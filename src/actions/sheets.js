@@ -1,176 +1,129 @@
-function safeJsonParse(str, fallback) {
-  try {
-    return JSON.parse(str);
-  } catch {
-    return fallback;
-  }
-}
-
-function deserializeHealthLog(row) {
+function deserializeBodyMetric(row) {
   return {
+    ...row,
+    weight: parseFloat(row.weight) || 0,
+    waist: parseFloat(row.waist) || 0,
+    height: parseFloat(row.height) || 173,
+    bmi: parseFloat(row.bmi) || 0,
     date: row.date ? String(row.date).slice(0, 10) : "",
-    weight: row.weight || "",
-    exercise: row.exercise === "true",
-    meals: {
-      pagi: safeJsonParse(row.meals_pagi, []),
-      siang: safeJsonParse(row.meals_siang, []),
-      sore: safeJsonParse(row.meals_sore, []),
-    },
-    score: parseInt(row.score) || 0,
-    warnings: safeJsonParse(row.warnings, []),
   };
 }
 
-export function serializeHealthLog(entry) {
+function deserializeWorkoutLog(row) {
   return {
-    date: entry.date,
-    weight: entry.weight || "",
-    exercise: entry.exercise ? "true" : "false",
-    meals_pagi: JSON.stringify(entry.meals?.pagi || []),
-    meals_siang: JSON.stringify(entry.meals?.siang || []),
-    meals_sore: JSON.stringify(entry.meals?.sore || []),
-    score: String(entry.score || 0),
-    warnings: JSON.stringify(entry.warnings || []),
+    ...row,
+    weight: parseFloat(row.weight) || 0,
+    reps: parseInt(row.reps) || 0,
+    rpe: parseInt(row.rpe) || 0,
+    set_number: parseInt(row.set_number) || 0,
+    date: row.date ? String(row.date).slice(0, 10) : "",
   };
 }
 
-export const groceryApi = {
-  async getAll() {
-    const res = await fetch("/api/sheets/grocery");
-    if (!res.ok) throw new Error("Failed to fetch grocery data");
-    return res.json();
-  },
+function deserializeProgram(row) {
+  return {
+    ...row,
+    target_sets: parseInt(row.target_sets) || 0,
+    rest_seconds: parseInt(row.rest_seconds) || 0,
+    target_weight: parseFloat(row.target_weight) || 0,
+    sort_order: parseInt(row.sort_order) || 0,
+  };
+}
 
+export const bodyApi = {
+  async getAll() {
+    const res = await fetch("/api/sheets/body");
+    if (!res.ok) throw new Error("Failed to fetch body metrics");
+    const rows = await res.json();
+    return rows.map(deserializeBodyMetric);
+  },
   async add(payload) {
-    const res = await fetch("/api/sheets/grocery", {
+    const res = await fetch("/api/sheets/body", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "add", payload }),
     });
     return res.json();
   },
-
-  async update(id, payload) {
-    const res = await fetch("/api/sheets/grocery", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "update", id, payload }),
-    });
-    return res.json();
-  },
-
   async delete(id) {
-    const res = await fetch("/api/sheets/grocery", {
+    const res = await fetch("/api/sheets/body", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "delete", id }),
     });
     return res.json();
   },
-
-  async upsertByName(payload) {
-    const res = await fetch("/api/sheets/grocery", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "upsertByName", payload }),
-    });
-    return res.json();
-  },
 };
 
-function deserializeTask(row) {
-  return {
-    ...row,
-    active: String(row.active) === "true",
-    lastDone: row.lastDone ? String(row.lastDone).slice(0, 10) : "",
-    deadline: row.deadline ? String(row.deadline).slice(0, 10) : "",
-    createdAt: row.createdAt ? String(row.createdAt).slice(0, 10) : "",
-    dayOfWeek: row.dayOfWeek || "[]",
-    interval: row.interval ? String(row.interval) : "",
-  };
-}
-
-function deserializeTaskLog(row) {
-  return {
-    ...row,
-    completedDate: row.completedDate ? String(row.completedDate).slice(0, 10) : "",
-  };
-}
-
-export const tasksApi = {
+export const exercisesApi = {
   async getAll() {
-    const res = await fetch("/api/sheets/tasks");
-    if (!res.ok) throw new Error("Failed to fetch tasks");
-    const rows = await res.json();
-    return rows.map(deserializeTask);
+    const res = await fetch("/api/sheets/exercises");
+    if (!res.ok) throw new Error("Failed to fetch exercises");
+    return res.json();
   },
-
-  async getLogs() {
-    const res = await fetch("/api/sheets/tasks?type=logs");
-    if (!res.ok) throw new Error("Failed to fetch task logs");
-    const rows = await res.json();
-    return rows.map(deserializeTaskLog);
-  },
-
   async add(payload) {
-    const res = await fetch("/api/sheets/tasks", {
+    const res = await fetch("/api/sheets/exercises", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "add", sheet: "Tasks", payload }),
-    });
-    return res.json();
-  },
-
-  async update(id, payload) {
-    const res = await fetch("/api/sheets/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "update", sheet: "Tasks", id, payload }),
-    });
-    return res.json();
-  },
-
-  async delete(id) {
-    const res = await fetch("/api/sheets/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "delete", sheet: "Tasks", id }),
-    });
-    return res.json();
-  },
-
-  async complete(taskId, completedDate) {
-    const res = await fetch("/api/sheets/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "completeTask", payload: { taskId, completedDate } }),
-    });
-    return res.json();
-  },
-
-  async uncomplete(taskId, completedDate) {
-    const res = await fetch("/api/sheets/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "uncompleteTask", payload: { taskId, completedDate } }),
+      body: JSON.stringify({ action: "add", payload }),
     });
     return res.json();
   },
 };
 
-export const healthApi = {
+export const workoutApi = {
   async getAll() {
-    const res = await fetch("/api/sheets/health");
-    if (!res.ok) throw new Error("Failed to fetch health data");
+    const res = await fetch("/api/sheets/workout");
+    if (!res.ok) throw new Error("Failed to fetch workout logs");
     const rows = await res.json();
-    return rows.map(deserializeHealthLog);
+    return rows.map(deserializeWorkoutLog);
   },
-
-  async upsert(entry) {
-    const res = await fetch("/api/sheets/health", {
+  async add(payload) {
+    const res = await fetch("/api/sheets/workout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "upsert", payload: serializeHealthLog(entry) }),
+      body: JSON.stringify({ action: "add", payload }),
+    });
+    return res.json();
+  },
+  async delete(id) {
+    const res = await fetch("/api/sheets/workout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", id }),
+    });
+    return res.json();
+  },
+};
+
+export const programApi = {
+  async getAll() {
+    const res = await fetch("/api/sheets/program");
+    if (!res.ok) throw new Error("Failed to fetch programs");
+    const rows = await res.json();
+    return rows.map(deserializeProgram);
+  },
+  async add(payload) {
+    const res = await fetch("/api/sheets/program", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "add", payload }),
+    });
+    return res.json();
+  },
+  async update(id, payload) {
+    const res = await fetch("/api/sheets/program", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "update", id, payload }),
+    });
+    return res.json();
+  },
+  async delete(id) {
+    const res = await fetch("/api/sheets/program", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", id }),
     });
     return res.json();
   },
