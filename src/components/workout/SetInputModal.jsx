@@ -13,6 +13,12 @@ const RPE_HINT = {
   10: "Maksimal · gagal",
 };
 
+/** First number in a target like "8-12", "2-3 menit" or "30 detik per sisi". */
+function leadingNumber(text) {
+  const m = String(text ?? "").match(/\d+/);
+  return m ? parseInt(m[0], 10) : null;
+}
+
 function formatDaysAgo(dateStr) {
   const then = new Date(dateStr + "T00:00:00");
   const now = new Date();
@@ -36,16 +42,25 @@ export default function SetInputModal({
   onClose,
 }) {
   const [weight, setWeight] = useState(prefillWeight != null ? String(prefillWeight) : "");
-  const [reps, setReps] = useState(prefillReps != null ? String(prefillReps) : "");
+  const [reps, setReps] = useState(() => {
+    if (prefillReps != null) return String(prefillReps);
+    // No history yet: seed from the programmed target so bodyweight and
+    // duration work ("2-3 menit", "30 detik per sisi") is not left at zero.
+    const fromTarget = leadingNumber(targetReps);
+    return fromTarget != null ? String(fromTarget) : "";
+  });
   const [rpe, setRpe] = useState(7);
 
-  const w = parseFloat(weight);
-  const r = parseInt(reps);
-  const valid = w > 0 && r > 0;
+  // Blank means bodyweight, not "unset" — plenty of exercises carry no load.
+  const w = weight.trim() === "" ? 0 : parseFloat(weight);
+  const r = parseInt(reps, 10);
+
+  const isBodyweight = Number.isFinite(w) && w === 0;
+  const valid = Number.isFinite(w) && w >= 0 && Number.isFinite(r) && r > 0;
 
   // Surface a PR the moment the entered weight beats the previous best, so the
-  // feedback lands while the lift is still fresh.
-  const isPR = valid && personalBest && w > personalBest.weight;
+  // feedback lands while the lift is still fresh. Load-free sets have no PR.
+  const isPR = valid && w > 0 && personalBest && w > personalBest.weight;
 
   // Compare against the matching set from last session, not just the last set,
   // so "set 3 vs set 3" is a like-for-like read.
@@ -62,14 +77,22 @@ export default function SetInputModal({
       title={exerciseName}
       onClose={onClose}
       footer={
-        <button
-          onClick={() => valid && onConfirm(w, r, rpe)}
-          disabled={!valid}
-          className="btn btn-primary btn-lg w-full"
-        >
-          {isPR && <FiAward size={18} />}
-          {isPR ? "Catat PR Baru" : "Catat Set"}
-        </button>
+        <div>
+          <button
+            onClick={() => valid && onConfirm(w, r, rpe)}
+            disabled={!valid}
+            className="btn btn-primary btn-lg w-full"
+          >
+            {isPR && <FiAward size={18} />}
+            {isPR ? "Catat PR Baru" : "Catat Set"}
+          </button>
+          {/* Never leave a disabled button unexplained */}
+          {!valid && (
+            <p className="text-xs text-ink-muted text-center mt-2">
+              Isi jumlah reps dulu. Beban boleh 0 buat gerakan bodyweight.
+            </p>
+          )}
+        </div>
       }
     >
       <div className="space-y-5 pb-2">
@@ -115,7 +138,13 @@ export default function SetInputModal({
           onChange={setWeight}
           step={2.5}
           suffix="kg"
-          hint={personalBest ? `PR ${personalBest.weight} kg` : null}
+          hint={
+            isBodyweight
+              ? "Bodyweight — tanpa beban"
+              : personalBest
+                ? `PR ${personalBest.weight} kg`
+                : null
+          }
         />
 
         <Stepper

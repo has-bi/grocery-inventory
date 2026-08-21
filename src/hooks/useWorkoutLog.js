@@ -168,7 +168,8 @@ export function useWorkoutLog() {
     (exerciseName) => {
       const last = getLastPerformance(exerciseName);
       if (last?.sets?.length) {
-        return last.sets[last.sets.length - 1].weight || null;
+        // `??` not `||`: a recorded 0 is a real bodyweight value, not "unset".
+        return last.sets[last.sets.length - 1].weight ?? null;
       }
       const todaySets = logs
         .filter((l) => l.exercise_name === exerciseName && l.weight > 0)
@@ -181,7 +182,7 @@ export function useWorkoutLog() {
   const getLastReps = useCallback(
     (exerciseName) => {
       const last = getLastPerformance(exerciseName);
-      if (last?.sets?.length) return last.sets[last.sets.length - 1].reps || null;
+      if (last?.sets?.length) return last.sets[last.sets.length - 1].reps ?? null;
       return null;
     },
     [getLastPerformance]
