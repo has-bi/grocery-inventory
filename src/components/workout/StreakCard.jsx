@@ -28,10 +28,10 @@ export default function StreakCard({ streak, weekStrip }) {
   const { current, best, todayPlan, pendingToday, trainedToday } = streak;
 
   const headline = todayPlan?.isRest
-    ? "Hari istirahat"
+    ? "Jatah rebahan"
     : trainedToday
-      ? "Sesi hari ini selesai"
-      : todayPlan?.session || "Belum ada jadwal";
+      ? "Beres. Mantap."
+      : todayPlan?.session || "Kosong, bebas";
 
   return (
     <div className="card p-4">
@@ -46,7 +46,7 @@ export default function StreakCard({ streak, weekStrip }) {
             )}
           </p>
           <p className="text-xs text-ink-faint mt-1.5 tabular">
-            {best > current ? `Terpanjang ${best} hari` : current > 1 ? "Rekor terpanjang lo" : "Mulai hari ini"}
+            {best > current ? `Rekormu ${best} hari` : current > 1 ? "Ini rekor terpanjangmu" : "Baru mulai. Gapapa."}
           </p>
         </div>
 
@@ -91,7 +91,7 @@ export default function StreakCard({ streak, weekStrip }) {
 
       {pendingToday && (
         <p className="text-xs text-ink-muted mt-3.5 text-center">
-          Selesain <span className="font-medium text-ink">{todayPlan.session}</span> buat jaga streak.
+          Streak-mu nunggu <span className="font-medium text-ink">{todayPlan.session}</span> dikelarin.
         </p>
       )}
     </div>

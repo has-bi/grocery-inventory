@@ -44,7 +44,7 @@ export default function MetricsChart({ metrics }) {
               <span className={change < 0 ? "text-emerald-700 font-medium" : change > 0 ? "text-amber-700 font-medium" : ""}>
                 {change > 0 ? "+" : ""}{change} {series.unit}
               </span>{" "}
-              dalam periode ini
+              di rentang ini
             </p>
           )}
         </div>
@@ -68,7 +68,7 @@ export default function MetricsChart({ metrics }) {
         <LineChart data={data} unit={series.unit} />
       ) : (
         <p className="text-sm text-ink-muted text-center py-10">
-          Butuh minimal 2 pengukuran di periode ini.
+          Butuh minimal 2 kali timbang di rentang ini.
         </p>
       )}
 

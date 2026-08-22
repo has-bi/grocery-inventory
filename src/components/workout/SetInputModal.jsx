@@ -97,7 +97,7 @@ export default function SetInputModal({
           {/* Never leave a disabled button unexplained */}
           {!valid && (
             <p className="text-xs text-ink-muted text-center mt-2">
-              Isi jumlah reps dulu. Beban boleh 0 buat gerakan bodyweight.
+              Reps-nya diisi dulu dong. Beban boleh 0 kalau modal badan doang.
             </p>
           )}
         </div>
@@ -135,7 +135,7 @@ export default function SetInputModal({
         ) : (
           <div className="card bg-surface-raised border-line p-3.5">
             <p className="text-xs text-ink-muted">
-              Belum ada catatan sebelumnya — set ini jadi baseline lo.
+              Belum ada riwayat. Set ini yang bakal jadi patokan nanti.
             </p>
           </div>
         )}
@@ -148,7 +148,7 @@ export default function SetInputModal({
           suffix="kg"
           hint={
             isBodyweight
-              ? "Bodyweight — tanpa beban"
+              ? "Modal badan doang"
               : personalBest?.metric === "weight"
                 ? `PR ${personalBest.value} kg`
                 : null
@@ -197,7 +197,7 @@ export default function SetInputModal({
         {isPR && (
           <div className="flex items-center gap-2 text-sm font-medium text-emerald-700 bg-emerald-50 rounded-xl px-3.5 py-3">
             <FiAward size={16} className="shrink-0" />
-            Rekor baru — sebelumnya {personalBest.value}
+            Rekor pecah — sebelumnya cuma {personalBest.value}
             {personalBest.metric === "weight" ? " kg" : " reps"}
           </div>
         )}

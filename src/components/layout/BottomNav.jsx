@@ -4,10 +4,10 @@ import { usePathname } from "next/navigation";
 import { FiActivity, FiUser, FiList, FiTrendingUp } from "react-icons/fi";
 
 export const TABS = [
-  { label: "Log", href: "/log", icon: FiActivity },
-  { label: "Body", href: "/body", icon: FiUser },
+  { label: "Angkat", href: "/log", icon: FiActivity },
+  { label: "Badan", href: "/body", icon: FiUser },
   { label: "Program", href: "/program", icon: FiList },
-  { label: "Progress", href: "/summary", icon: FiTrendingUp },
+  { label: "Rapor", href: "/summary", icon: FiTrendingUp },
 ];
 
 export default function BottomNav() {

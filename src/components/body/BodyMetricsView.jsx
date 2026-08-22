@@ -89,9 +89,9 @@ export default function BodyMetricsView() {
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="page-title">Body Metrics</h1>
+          <h1 className="page-title">Bentuk Badan</h1>
           <p className="page-sub">
-            {latest ? `Terakhir diukur ${formatDate(latest.date)}` : "Belum ada pengukuran"}
+            {latest ? `Terakhir ditimbang ${formatDate(latest.date)}` : "Belum pernah ditimbang"}
           </p>
         </div>
         <button
@@ -142,7 +142,7 @@ export default function BodyMetricsView() {
 
       {showForm && (
         <form onSubmit={handleSubmit} className="card p-4 space-y-4">
-          <h2 className="text-sm font-semibold text-ink">Pengukuran Baru</h2>
+          <h2 className="text-sm font-semibold text-ink">Naik timbangan</h2>
           <div className="grid grid-cols-2 gap-3">
             {[
               { label: "Berat (kg)", key: "weight", step: "0.1", placeholder: "84.5", required: true },
@@ -180,14 +180,14 @@ export default function BodyMetricsView() {
             disabled={saving || !form.weight || !form.waist}
             className="btn btn-primary btn-md w-full"
           >
-            {saving ? "Menyimpan..." : "Simpan"}
+            {saving ? "Bentar..." : "Simpan"}
           </button>
         </form>
       )}
 
       {metrics.length > 0 && (
         <section>
-          <p className="section-label mb-2.5">Riwayat</p>
+          <p className="section-label mb-2.5">Rekam jejak</p>
           <div className="card divide-y divide-line">
             {metrics.map((m, i) => {
               const prev = metrics[i + 1];
@@ -226,13 +226,13 @@ export default function BodyMetricsView() {
 
       {metrics.length === 0 && !showForm && (
         <div className="card p-8 text-center">
-          <p className="text-sm font-medium text-ink mb-1">Belum ada data</p>
+          <p className="text-sm font-medium text-ink mb-1">Masih kosong</p>
           <p className="text-sm text-ink-muted mb-4">
-            Catat pengukuran pertama buat mulai lihat trennya.
+            Timbang sekali dulu. Tren-nya baru kelihatan setelah ada dua titik.
           </p>
           <button onClick={() => setShowForm(true)} className="btn btn-primary btn-md mx-auto">
             <FiPlus size={15} />
-            Catat sekarang
+            Timbang sekarang
           </button>
         </div>
       )}

@@ -108,8 +108,8 @@ export default function SummaryView() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <header>
-        <h1 className="page-title">Progress</h1>
-        <p className="page-sub">Ringkasan perkembangan latihan</p>
+        <h1 className="page-title">Rapor</h1>
+        <p className="page-sub">Angka nggak bisa bohong</p>
       </header>
 
       {error && (
@@ -121,8 +121,8 @@ export default function SummaryView() {
 
       {logs.length === 0 ? (
         <div className="card p-8 text-center">
-          <p className="text-sm font-medium text-ink mb-1">Belum ada data latihan</p>
-          <p className="text-sm text-ink-muted">Mulai catat set di tab Log buat lihat progresnya.</p>
+          <p className="text-sm font-medium text-ink mb-1">Belum ada apa-apa</p>
+          <p className="text-sm text-ink-muted">Catat beberapa set dulu, nanti grafiknya muncul sendiri.</p>
         </div>
       ) : (
         <>
@@ -144,7 +144,7 @@ export default function SummaryView() {
                 )}
               </p>
               <p className="text-xs text-ink-faint mt-1.5">
-                {weekly.previous > 0 ? "vs pekan lalu" : "pekan pertama"}
+                {weekly.previous > 0 ? "vs pekan lalu" : "pekan perdana"}
               </p>
             </div>
             <div className="flex-1 px-4 py-3.5">
@@ -158,7 +158,7 @@ export default function SummaryView() {
                 {Math.round(totalVolume / 1000).toLocaleString("id-ID")}
                 <span className="text-sm font-normal text-ink-faint ml-1">ton</span>
               </p>
-              <p className="text-xs text-ink-faint mt-1.5">total angkatan</p>
+              <p className="text-xs text-ink-faint mt-1.5">seumur hidup</p>
             </div>
           </div>
 
@@ -172,7 +172,7 @@ export default function SummaryView() {
           {exerciseNames.length > 0 && (
             <div className="card p-4 space-y-4">
               <div>
-                <label htmlFor="ex-select" className="field-label">Progress per exercise</label>
+                <label htmlFor="ex-select" className="field-label">Lihat per gerakan</label>
                 <select
                   id="ex-select"
                   value={selected}
@@ -213,12 +213,12 @@ export default function SummaryView() {
 
               {exerciseProgress.length >= 2 ? (
                 <div>
-                  <p className="text-xs text-ink-muted mb-1">Beban maksimum per sesi (kg)</p>
+                  <p className="text-xs text-ink-muted mb-1">Beban terberat tiap sesi (kg)</p>
                   <LineChart data={exerciseProgress} unit="kg" height={140} />
                 </div>
               ) : (
                 <p className="text-sm text-ink-muted text-center py-6">
-                  Butuh minimal 2 sesi buat lihat grafiknya.
+                  Butuh 2 sesi dulu baru ada garisnya.
                 </p>
               )}
             </div>

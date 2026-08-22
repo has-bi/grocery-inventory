@@ -66,7 +66,7 @@ function LoginForm() {
             <FiLock size={20} className="text-white" />
           </div>
           <h1 className="text-3xl font-semibold tracking-tight text-ink">Latihan</h1>
-          <p className="text-sm text-ink-muted mt-1.5">Masukkan PIN untuk melanjutkan</p>
+          <p className="text-sm text-ink-muted mt-1.5">PIN dulu, baru boleh masuk</p>
         </div>
 
         <form onSubmit={handleSubmit} className="card p-6 space-y-4">
@@ -112,7 +112,7 @@ function LoginForm() {
             disabled={loading || locked || pin.length < 4}
             className="btn btn-primary btn-md w-full"
           >
-            {loading ? "Memverifikasi..." : locked ? `Tunggu ${lockedFor}s` : "Masuk"}
+            {loading ? "Ngecek..." : locked ? `Sabar ${lockedFor}s` : "Masuk"}
           </button>
         </form>
       </div>
