@@ -27,7 +27,7 @@ export default function ExercisePicker({ exercises, alreadyAdded, onSelect, onCl
   const trimmed = query.trim();
 
   return (
-    <Sheet title="Pilih Exercise" onClose={onClose}>
+    <Sheet title="Mau angkat apa?" onClose={onClose}>
       <div className="sticky top-0 bg-surface pb-3 -mx-5 px-5 z-10">
         <div className="relative">
           <FiSearch
@@ -37,7 +37,7 @@ export default function ExercisePicker({ exercises, alreadyAdded, onSelect, onCl
           <input
             autoFocus
             type="text"
-            placeholder="Cari nama atau otot..."
+            placeholder="Ketik nama gerakan atau ototnya..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="field pl-9"
@@ -68,9 +68,9 @@ export default function ExercisePicker({ exercises, alreadyAdded, onSelect, onCl
 
         {count === 0 && (
           <div className="text-center py-10">
-            <p className="text-sm font-medium text-ink mb-1">Tidak ditemukan</p>
+            <p className="text-sm font-medium text-ink mb-1">Nihil</p>
             <p className="text-sm text-ink-muted mb-4">
-              {trimmed ? `Tidak ada hasil untuk "${trimmed}".` : "Semua exercise sudah ditambahkan."}
+              {trimmed ? `Nggak nemu "${trimmed}" di daftar.` : "Semua gerakan udah masuk semua."}
             </p>
             {trimmed && (
               <button onClick={() => onSelect(trimmed)} className="btn btn-primary btn-md mx-auto">

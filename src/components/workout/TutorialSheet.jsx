@@ -79,7 +79,7 @@ export default function TutorialSheet({ exercise, programInfo, onClose }) {
 
         {points.length > 0 ? (
           <div>
-            <p className="section-label mb-2">Poin teknik</p>
+            <p className="section-label mb-2">Jangan sampai salah</p>
             <ul className="space-y-2">
               {points.map((p, i) => (
                 <li key={i} className="flex gap-2.5 text-sm text-ink leading-relaxed">
@@ -91,7 +91,7 @@ export default function TutorialSheet({ exercise, programInfo, onClose }) {
           </div>
         ) : (
           <p className="text-sm text-ink-muted">
-            Belum ada catatan teknik. Isi kolom <span className="font-medium text-ink">cues</span> di
+            Belum ada catatan tekniknya. Isi kolom <span className="font-medium text-ink">cues</span> di
             sheet <span className="font-medium text-ink">Exercises</span> buat nampilin di sini.
           </p>
         )}

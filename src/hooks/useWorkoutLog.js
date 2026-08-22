@@ -127,6 +127,47 @@ export function useWorkoutLog() {
     return [...programNames, ...extras];
   }, [sessionProgram, todayByExercise]);
 
+  /** Every set logged today for the session on screen, flattened. */
+  const todaySessionSets = useMemo(
+    () => Object.values(todayByExercise).flat(),
+    [todayByExercise]
+  );
+
+  /**
+   * The same session's sets from the last day it was trained, used as the
+   * comparison baseline in the summary.
+   */
+  const priorSessionSets = useMemo(() => {
+    if (!activeSession) return [];
+    const prior = logs.filter((l) => l.session === activeSession && l.date !== today);
+    if (!prior.length) return [];
+    const lastDate = prior.map((l) => l.date).sort((a, b) => b.localeCompare(a))[0];
+    return prior.filter((l) => l.date === lastDate);
+  }, [logs, activeSession, today]);
+
+  /**
+   * Exercises where today's best beats every earlier day. Compared against
+   * prior days only, so a set does not count itself as the record it broke.
+   */
+  const todayPrCount = useMemo(() => {
+    let count = 0;
+    Object.entries(todayByExercise).forEach(([name, sets]) => {
+      if (!sets.length) return;
+      const earlier = logs.filter((l) => l.exercise_name === name && l.date !== today);
+      if (!earlier.length) return;
+
+      const loaded = earlier.some((l) => l.weight > 0) || sets.some((l) => l.weight > 0);
+      if (loaded) {
+        const best = Math.max(...earlier.map((l) => l.weight || 0));
+        if (Math.max(...sets.map((l) => l.weight || 0)) > best) count += 1;
+      } else {
+        const best = Math.max(...earlier.map((l) => l.reps || 0));
+        if (Math.max(...sets.map((l) => l.reps || 0)) > best) count += 1;
+      }
+    });
+    return count;
+  }, [todayByExercise, logs, today]);
+
   /** Overall completion for the session header: sets done vs. sets programmed. */
   const sessionProgress = useMemo(() => {
     const target = sessionProgram.reduce((sum, p) => sum + (p.target_sets || 0), 0);
@@ -351,6 +392,9 @@ export function useWorkoutLog() {
     todayExerciseNames,
     sessionProgram,
     sessionProgress,
+    todaySessionSets,
+    priorSessionSets,
+    todayPrCount,
     sessions,
     streak,
     weekStrip,

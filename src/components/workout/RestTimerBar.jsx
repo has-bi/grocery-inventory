@@ -34,7 +34,7 @@ export default function RestTimerBar({ remaining, duration, label, isDone, onExt
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="min-w-0 flex-1">
             <p className="text-[11px] uppercase tracking-wider text-white/60 leading-none mb-1">
-              {isDone ? "Istirahat selesai" : "Istirahat"}
+              {isDone ? "Gas lagi!" : "Napas dulu"}
             </p>
             <p className="text-sm text-white/80 truncate leading-none">{label}</p>
           </div>

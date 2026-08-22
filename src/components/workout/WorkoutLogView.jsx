@@ -7,9 +7,10 @@ import ExercisePicker from "./ExercisePicker";
 import RestTimerBar from "./RestTimerBar";
 import StreakCard from "./StreakCard";
 import TutorialSheet from "./TutorialSheet";
+import SessionSummarySheet from "./SessionSummarySheet";
 import {
   FiPlus, FiTrash2, FiCheck, FiChevronDown, FiAlertCircle,
-  FiHelpCircle, FiEdit2, FiRefreshCw,
+  FiHelpCircle, FiEdit2, FiRefreshCw, FiFlag,
 } from "react-icons/fi";
 
 const DEFAULT_REST = 90;
@@ -105,7 +106,7 @@ function SetRow({ log, index, onDelete, onRetry, onEdit }) {
         <div className="flex items-center gap-2 px-3 pb-2.5">
           <FiAlertCircle size={13} className="text-amber-700 shrink-0" />
           <p className="flex-1 text-xs text-amber-800 leading-snug">
-            {log._error || "Belum tersimpan."}
+            {log._error || "Nyangkut, belum kesimpen."}
           </p>
           <button
             onClick={() => onRetry(log._id)}
@@ -215,7 +216,7 @@ function ExerciseCard({
 
           {sets.length === 0 && lastSet && (
             <p className="px-3 py-2 text-xs text-ink-muted">
-              Terakhir:{" "}
+              Terakhir angkat:{" "}
               <span className="font-medium text-ink tabular">
                 {lastSet.weight} kg × {lastSet.reps}
               </span>
@@ -224,7 +225,7 @@ function ExerciseCard({
 
           <button onClick={onLogSet} className="btn btn-secondary btn-md w-full">
             <FiPlus size={15} />
-            {sets.length === 0 ? "Log set pertama" : `Log set ${sets.length + 1}`}
+            {sets.length === 0 ? "Mulai set pertama" : `Lanjut set ${sets.length + 1}`}
           </button>
         </div>
       )}
@@ -237,6 +238,7 @@ export default function WorkoutLogView() {
     loading, error, today, activeSession, setActiveSession, suggestedSession,
     todayByExercise, todayExerciseNames, sessionProgram, sessionProgress,
     sessions, streak, weekStrip,
+    todaySessionSets, priorSessionSets, todayPrCount,
     exercises, recentSessions,
     getLastWeight, getLastReps, getLastPerformance, getPersonalBest,
     logSet, retrySet, updateSet, deleteSet,
@@ -245,6 +247,7 @@ export default function WorkoutLogView() {
   const timer = useRestTimer();
   const [loggingExercise, setLoggingExercise] = useState(null);
   const [editingSet, setEditingSet] = useState(null);
+  const [showSummary, setShowSummary] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [tutorialFor, setTutorialFor] = useState(null);
 
@@ -288,7 +291,7 @@ export default function WorkoutLogView() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-32 space-y-5">
       <header>
-        <h1 className="page-title">Log Latihan</h1>
+        <h1 className="page-title">Angkat Besi</h1>
         <p className="page-sub capitalize">{todayLabel}</p>
       </header>
 
@@ -305,9 +308,9 @@ export default function WorkoutLogView() {
       {/* Session selector — scrolls rather than wrapping, keeping the header a fixed height */}
       <div>
         <div className="flex items-baseline justify-between mb-2">
-          <p className="section-label">Sesi</p>
+          <p className="section-label">Mau hajar yang mana</p>
           {suggestedSession && activeSession !== suggestedSession && (
-            <span className="text-xs text-ink-faint">Jadwal: {suggestedSession}</span>
+            <span className="text-xs text-ink-faint">Jadwalnya sih {suggestedSession}</span>
           )}
         </div>
         <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -331,7 +334,7 @@ export default function WorkoutLogView() {
         <div className="card p-4">
           <div className="flex items-end justify-between mb-2.5">
             <div>
-              <p className="text-xs text-ink-muted mb-0.5">Progres sesi</p>
+              <p className="text-xs text-ink-muted mb-0.5">Kemajuan</p>
               <p className="text-lg font-semibold text-ink tabular leading-none">
                 {sessionProgress.done}
                 <span className="text-ink-faint font-normal">/{sessionProgress.target} set</span>
@@ -339,7 +342,7 @@ export default function WorkoutLogView() {
             </div>
             {sessionProgress.volume > 0 && (
               <div className="text-right">
-                <p className="text-xs text-ink-muted mb-0.5">Volume</p>
+                <p className="text-xs text-ink-muted mb-0.5">Total diangkat</p>
                 <p className="text-lg font-semibold text-ink tabular leading-none">
                   {Math.round(sessionProgress.volume).toLocaleString("id-ID")}
                   <span className="text-ink-faint font-normal text-sm"> kg</span>
@@ -358,8 +361,21 @@ export default function WorkoutLogView() {
           {sessionProgress.complete && (
             <p className="text-xs font-medium text-emerald-700 mt-2.5 flex items-center gap-1.5">
               <FiCheck size={13} strokeWidth={3} />
-              Sesi selesai — kerja bagus.
+              Program hari ini kelar semua. Boleh sombong.
             </p>
+          )}
+
+          {/* Available from the first set — a short session still deserves a verdict */}
+          {sessionProgress.done > 0 && (
+            <button
+              onClick={() => setShowSummary(true)}
+              className={`btn btn-md w-full mt-3.5 ${
+                sessionProgress.complete ? "btn-primary" : "btn-secondary"
+              }`}
+            >
+              <FiFlag size={15} />
+              Sudahi sesi &amp; lihat rapor
+            </button>
           )}
         </div>
       )}
@@ -385,13 +401,13 @@ export default function WorkoutLogView() {
 
           {todayExerciseNames.length === 0 && (
             <div className="card p-8 text-center">
-              <p className="text-sm font-medium text-ink mb-1">Belum ada exercise</p>
+              <p className="text-sm font-medium text-ink mb-1">Kosong melompong</p>
               <p className="text-sm text-ink-muted mb-4">
-                Sesi {activeSession} belum punya program. Tambah langsung di sini.
+                Sesi {activeSession} belum ada isinya. Tambahin gerakan biar ada yang diangkat.
               </p>
               <button onClick={() => setShowPicker(true)} className="btn btn-primary btn-md mx-auto">
                 <FiPlus size={15} />
-                Tambah exercise
+                Tambahin gerakan
               </button>
             </div>
           )}
@@ -399,7 +415,7 @@ export default function WorkoutLogView() {
           {todayExerciseNames.length > 0 && (
             <button onClick={() => setShowPicker(true)} className="btn btn-ghost btn-md w-full border border-dashed border-line-strong">
               <FiPlus size={15} />
-              Tambah exercise lain
+              Nambah gerakan lain
             </button>
           )}
         </div>
@@ -408,7 +424,7 @@ export default function WorkoutLogView() {
       {/* History */}
       {recentSessions.length > 0 && (
         <section>
-          <p className="section-label mb-2.5">Sesi sebelumnya</p>
+          <p className="section-label mb-2.5">Jejak lama</p>
           <div className="card divide-y divide-line">
             {recentSessions.map((s) => (
               <div key={s.key} className="flex items-center justify-between px-4 py-3">
@@ -441,6 +457,18 @@ export default function WorkoutLogView() {
           targetReps={sessionProgram.find((p) => p.exercise_name === loggingExercise)?.target_reps}
           onConfirm={handleConfirm}
           onClose={() => setLoggingExercise(null)}
+        />
+      )}
+
+      {showSummary && (
+        <SessionSummarySheet
+          sessionName={activeSession}
+          date={today}
+          todaySets={todaySessionSets}
+          priorSets={priorSessionSets}
+          targetSets={sessionProgress.target}
+          prCount={todayPrCount}
+          onClose={() => setShowSummary(false)}
         />
       )}
 

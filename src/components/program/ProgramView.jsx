@@ -49,7 +49,7 @@ export default function ProgramView() {
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <header>
         <h1 className="page-title">Program</h1>
-        <p className="page-sub">Jadwal mingguan — diatur dari Google Sheet</p>
+        <p className="page-sub">Diatur dari Google Sheet, dibaca di sini</p>
       </header>
 
       {error && (
@@ -83,9 +83,9 @@ export default function ProgramView() {
       {isRest ? (
         <div className="card p-8 text-center">
           <FiMoon size={22} className="mx-auto text-ink-faint mb-3" />
-          <p className="text-sm font-medium text-ink mb-1">Hari istirahat</p>
+          <p className="text-sm font-medium text-ink mb-1">Jatah rebahan</p>
           <p className="text-sm text-ink-muted">
-            {plan?.notes || "Recovery. Streak lo tetap aman di hari ini."}
+            {plan?.notes || "Otot tumbuhnya pas istirahat, bukan pas diangkat. Streak aman."}
           </p>
         </div>
       ) : (
@@ -128,7 +128,7 @@ export default function ProgramView() {
             {list.length === 0 && (
               <div className="card p-8 text-center">
                 <p className="text-sm font-medium text-ink mb-1">
-                  Belum ada exercise buat {sessionName}
+                  Sesi {sessionName} masih kosong
                 </p>
                 <p className="text-sm text-ink-muted">
                   Tambahin barisnya di sheet <span className="font-medium text-ink">Programs</span>{" "}
@@ -146,7 +146,7 @@ export default function ProgramView() {
         rel="noopener noreferrer"
         className="btn btn-secondary btn-md w-full"
       >
-        Edit di Google Sheet
+        Atur di Google Sheet
         <FiExternalLink size={14} className="text-ink-faint" />
       </a>
 
