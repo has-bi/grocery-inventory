@@ -16,7 +16,6 @@ const PUBLIC_FILES = new Set([
 
 function isPublic(pathname) {
   if (pathname.startsWith("/_next")) return true;
-  if (pathname.startsWith("/images")) return true;
   if (pathname.startsWith("/api/auth")) return true;
   if (PUBLIC_FILES.has(pathname)) return true;
   // Next generates hashed icon routes (/icon.png, /apple-icon.png).
