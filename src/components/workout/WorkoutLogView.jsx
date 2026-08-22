@@ -7,7 +7,10 @@ import ExercisePicker from "./ExercisePicker";
 import RestTimerBar from "./RestTimerBar";
 import StreakCard from "./StreakCard";
 import TutorialSheet from "./TutorialSheet";
-import { FiPlus, FiTrash2, FiCheck, FiChevronDown, FiAlertCircle, FiHelpCircle } from "react-icons/fi";
+import {
+  FiPlus, FiTrash2, FiCheck, FiChevronDown, FiAlertCircle,
+  FiHelpCircle, FiEdit2, FiRefreshCw,
+} from "react-icons/fi";
 
 const DEFAULT_REST = 90;
 
@@ -35,52 +38,92 @@ function SetDots({ done, target }) {
   );
 }
 
-function SetRow({ log, index, onDelete }) {
+function SetRow({ log, index, onDelete, onRetry, onEdit }) {
   const [confirming, setConfirming] = useState(false);
+
+  const saving = log._status === "saving";
+  const failed = log._status === "failed";
+
+  if (confirming) {
+    return (
+      <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-red-50">
+        <span className="w-5 text-xs font-semibold text-ink-faint tabular shrink-0">{index + 1}</span>
+        <span className="flex-1 text-sm font-medium text-red-700">Hapus set ini?</span>
+        <button onClick={() => onDelete(log._id)} className="btn btn-danger btn-sm px-2.5">
+          Hapus
+        </button>
+        <button onClick={() => setConfirming(false)} className="btn btn-ghost btn-sm px-2.5">
+          Batal
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
-        confirming ? "bg-red-50" : "odd:bg-surface-raised/60"
+      className={`rounded-xl transition-colors ${
+        failed ? "bg-amber-50 border border-amber-200" : "odd:bg-surface-raised/60"
       }`}
     >
-      <span className="w-5 text-xs font-semibold text-ink-faint tabular shrink-0">{index + 1}</span>
+      <div className="flex items-center gap-3 px-3 py-2.5">
+        <span className="w-5 text-xs font-semibold text-ink-faint tabular shrink-0">
+          {index + 1}
+        </span>
 
-      {confirming ? (
-        <>
-          <span className="flex-1 text-sm font-medium text-red-700">Hapus set ini?</span>
+        <span
+          className={`flex-1 text-sm font-semibold tabular ${saving ? "opacity-40" : "text-ink"}`}
+        >
+          {log.weight} kg <span className="text-ink-faint font-normal mx-0.5">×</span> {log.reps}
+        </span>
+
+        {log.rpe ? (
+          <span className="text-xs text-ink-muted tabular shrink-0">RPE {log.rpe}</span>
+        ) : null}
+
+        {!failed && (
           <button
-            onClick={() => onDelete(log._id)}
-            className="btn btn-danger btn-xs px-2.5"
+            onClick={() => onEdit(log)}
+            aria-label={`Ubah set ${index + 1}`}
+            disabled={saving}
+            className="btn btn-ghost btn-icon shrink-0 disabled:opacity-30"
           >
-            Hapus
+            <FiEdit2 size={13} />
           </button>
-          <button onClick={() => setConfirming(false)} className="btn btn-ghost btn-xs px-2.5">
-            Batal
-          </button>
-        </>
-      ) : (
-        <>
-          <span className="flex-1 text-sm font-semibold text-ink tabular">
-            {log.weight} kg <span className="text-ink-faint font-normal mx-0.5">×</span> {log.reps}
-          </span>
-          {log.rpe ? (
-            <span className="text-xs text-ink-muted tabular shrink-0">RPE {log.rpe}</span>
-          ) : null}
+        )}
+
+        <button
+          onClick={() => setConfirming(true)}
+          aria-label={`Hapus set ${index + 1}`}
+          className="btn btn-ghost btn-icon shrink-0"
+        >
+          <FiTrash2 size={13} />
+        </button>
+      </div>
+
+      {/* A failed write keeps its row: the reps happened, only the save did not */}
+      {failed && (
+        <div className="flex items-center gap-2 px-3 pb-2.5">
+          <FiAlertCircle size={13} className="text-amber-700 shrink-0" />
+          <p className="flex-1 text-xs text-amber-800 leading-snug">
+            {log._error || "Belum tersimpan."}
+          </p>
           <button
-            onClick={() => setConfirming(true)}
-            aria-label={`Hapus set ${index + 1}`}
-            className="btn btn-ghost btn-icon shrink-0"
+            onClick={() => onRetry(log._id)}
+            className="btn btn-secondary btn-sm px-2.5 shrink-0"
           >
-            <FiTrash2 size={13} />
+            <FiRefreshCw size={12} />
+            Kirim ulang
           </button>
-        </>
+        </div>
       )}
     </div>
   );
 }
 
-function ExerciseCard({ name, sets, programInfo, lastPerformance, hasTutorial, onShowTutorial, onLogSet, onDelete }) {
+function ExerciseCard({
+  name, sets, programInfo, lastPerformance, hasTutorial,
+  onShowTutorial, onLogSet, onDelete, onRetry, onEdit,
+}) {
   const [open, setOpen] = useState(true);
 
   const target = programInfo?.target_sets ?? 0;
@@ -158,7 +201,14 @@ function ExerciseCard({ name, sets, programInfo, lastPerformance, hasTutorial, o
           {sets.length > 0 && (
             <div className="space-y-0.5">
               {sets.map((s, i) => (
-                <SetRow key={s._id} log={s} index={i} onDelete={onDelete} />
+                <SetRow
+                  key={s._id}
+                  log={s}
+                  index={i}
+                  onDelete={onDelete}
+                  onRetry={onRetry}
+                  onEdit={onEdit}
+                />
               ))}
             </div>
           )}
@@ -189,11 +239,12 @@ export default function WorkoutLogView() {
     sessions, streak, weekStrip,
     exercises, recentSessions,
     getLastWeight, getLastReps, getLastPerformance, getPersonalBest,
-    logSet, deleteSet,
+    logSet, retrySet, updateSet, deleteSet,
   } = useWorkoutLog();
 
   const timer = useRestTimer();
   const [loggingExercise, setLoggingExercise] = useState(null);
+  const [editingSet, setEditingSet] = useState(null);
   const [showPicker, setShowPicker] = useState(false);
   const [tutorialFor, setTutorialFor] = useState(null);
 
@@ -327,6 +378,8 @@ export default function WorkoutLogView() {
               onShowTutorial={() => setTutorialFor(name)}
               onLogSet={() => setLoggingExercise(name)}
               onDelete={deleteSet}
+              onRetry={retrySet}
+              onEdit={setEditingSet}
             />
           ))}
 
@@ -358,7 +411,7 @@ export default function WorkoutLogView() {
           <p className="section-label mb-2.5">Sesi sebelumnya</p>
           <div className="card divide-y divide-line">
             {recentSessions.map((s) => (
-              <div key={s.date} className="flex items-center justify-between px-4 py-3">
+              <div key={s.key} className="flex items-center justify-between px-4 py-3">
                 <div>
                   <p className="text-sm font-medium text-ink">{s.session}</p>
                   <p className="text-xs text-ink-muted mt-0.5">{formatDate(s.date)}</p>
@@ -388,6 +441,25 @@ export default function WorkoutLogView() {
           targetReps={sessionProgram.find((p) => p.exercise_name === loggingExercise)?.target_reps}
           onConfirm={handleConfirm}
           onClose={() => setLoggingExercise(null)}
+        />
+      )}
+
+      {editingSet && (
+        <SetInputModal
+          mode="edit"
+          exerciseName={editingSet.exercise_name}
+          setNumber={editingSet.set_number}
+          prefillWeight={editingSet.weight}
+          prefillReps={editingSet.reps}
+          prefillRpe={editingSet.rpe}
+          lastPerformance={getLastPerformance(editingSet.exercise_name)}
+          personalBest={getPersonalBest(editingSet.exercise_name)}
+          targetReps={sessionProgram.find((p) => p.exercise_name === editingSet.exercise_name)?.target_reps}
+          onConfirm={(weight, reps, rpe) => {
+            updateSet(editingSet._id, { weight, reps, rpe });
+            setEditingSet(null);
+          }}
+          onClose={() => setEditingSet(null)}
         />
       )}
 
