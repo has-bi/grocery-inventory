@@ -154,12 +154,28 @@ export function useWorkoutLog() {
     [logs, today]
   );
 
-  /** Heaviest set ever recorded, used to flag a new PR the moment it happens. */
+  /**
+   * Best effort on record, as { metric, value, log }.
+   *
+   * Loaded lifts rank by weight. Bodyweight work carries no load, so ranking it
+   * by weight meant Pull Up could never show a best at all — those rank by reps
+   * instead, which is how the effort actually progresses.
+   */
   const getPersonalBest = useCallback(
     (exerciseName) => {
-      const all = logs.filter((l) => l.exercise_name === exerciseName && l.weight > 0);
+      const all = logs.filter((l) => l.exercise_name === exerciseName);
       if (!all.length) return null;
-      return all.reduce((best, l) => (l.weight > best.weight ? l : best), all[0]);
+
+      const loaded = all.filter((l) => l.weight > 0);
+      if (loaded.length) {
+        const log = loaded.reduce((best, l) => (l.weight > best.weight ? l : best), loaded[0]);
+        return { metric: "weight", value: log.weight, log };
+      }
+
+      const byReps = all.filter((l) => l.reps > 0);
+      if (!byReps.length) return null;
+      const log = byReps.reduce((best, l) => (l.reps > best.reps ? l : best), byReps[0]);
+      return { metric: "reps", value: log.reps, log };
     },
     [logs]
   );
@@ -189,16 +205,53 @@ export function useWorkoutLog() {
   );
 
   const recentSessions = useMemo(() => {
-    const byDate = {};
+    // Keyed by date *and* session: grouping on date alone merged two sessions
+    // trained in one day and labelled them with whichever row happened to land
+    // in the map first.
+    const groups = {};
     logs
       .filter((l) => l.date !== today)
       .forEach((l) => {
-        byDate[l.date] ||= { date: l.date, session: l.session, sets: 0, volume: 0 };
-        byDate[l.date].sets += 1;
-        byDate[l.date].volume += setVolume(l);
+        const key = `${l.date}__${l.session}`;
+        groups[key] ||= { key, date: l.date, session: l.session, sets: 0, volume: 0 };
+        groups[key].sets += 1;
+        groups[key].volume += setVolume(l);
       });
-    return Object.values(byDate).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7);
+
+    return Object.values(groups)
+      .sort((a, b) => b.date.localeCompare(a.date) || a.session.localeCompare(b.session))
+      .slice(0, 7);
   }, [logs, today]);
+
+  /**
+   * Sends a pending row and marks the outcome on the row itself.
+   *
+   * A failed write keeps its row — you already did the reps, so discarding it
+   * would lose real work. The row carries `_status: "failed"` and its original
+   * payload so the UI can offer a retry.
+   */
+  const push = useCallback(async (tempId, payload) => {
+    setLogs((prev) =>
+      prev.map((l) => (l._id === tempId ? { ...l, _status: "saving", _error: null } : l))
+    );
+
+    try {
+      const result = await workoutApi.add(payload);
+      setLogs((prev) =>
+        prev.map((l) =>
+          l._id === tempId ? { ...l, _id: result._id, _status: undefined, _payload: undefined } : l
+        )
+      );
+      return true;
+    } catch (err) {
+      setLogs((prev) =>
+        prev.map((l) =>
+          l._id === tempId ? { ...l, _status: "failed", _error: err.message } : l
+        )
+      );
+      return false;
+    }
+  }, []);
 
   const logSet = useCallback(
     async (exerciseName, weight, reps, rpe, notes = "") => {
@@ -215,22 +268,66 @@ export function useWorkoutLog() {
         notes,
       };
 
-      const tempId = `temp_${Date.now()}`;
-      setLogs((prev) => [...prev, { _id: tempId, ...payload, weight, reps, rpe, set_number: setNumber }]);
+      const tempId = `temp_${Date.now()}_${Math.round(weight * 100)}_${reps}`;
+      setLogs((prev) => [
+        ...prev,
+        { _id: tempId, ...payload, weight, reps, rpe, set_number: setNumber, _payload: payload, _status: "saving" },
+      ]);
+
+      await push(tempId, payload);
+    },
+    [todayByExercise, today, activeSession, push]
+  );
+
+  const retrySet = useCallback(
+    async (tempId) => {
+      const row = logs.find((l) => l._id === tempId);
+      if (!row?._payload) return;
+      await push(tempId, row._payload);
+    },
+    [logs, push]
+  );
+
+  const updateSet = useCallback(
+    async (id, { weight, reps, rpe }) => {
+      const before = logs.find((l) => l._id === id);
+      if (!before) return;
+
+      setLogs((prev) =>
+        prev.map((l) => (l._id === id ? { ...l, weight, reps, rpe } : l))
+      );
 
       try {
-        const result = await workoutApi.add(payload);
-        setLogs((prev) => prev.map((l) => (l._id === tempId ? { ...l, _id: result._id } : l)));
+        await workoutApi.update(id, {
+          weight: String(weight),
+          reps: String(reps),
+          rpe: String(rpe),
+        });
       } catch (err) {
-        setLogs((prev) => prev.filter((l) => l._id !== tempId));
+        // Put the old values back rather than leaving the UI ahead of the sheet.
+        setLogs((prev) =>
+          prev.map((l) =>
+            l._id === id
+              ? { ...l, weight: before.weight, reps: before.reps, rpe: before.rpe }
+              : l
+          )
+        );
         setError(err.message);
       }
     },
-    [todayByExercise, today, activeSession]
+    [logs]
   );
 
   const deleteSet = useCallback(
     async (id) => {
+      const row = logs.find((l) => l._id === id);
+
+      // A row that never reached the server has nothing to delete remotely.
+      if (!row || row._status === "failed" || String(id).startsWith("temp_")) {
+        setLogs((prev) => prev.filter((l) => l._id !== id));
+        return;
+      }
+
       const snapshot = logs;
       setLogs((prev) => prev.filter((l) => l._id !== id));
       try {
@@ -264,6 +361,8 @@ export function useWorkoutLog() {
     getLastPerformance,
     getPersonalBest,
     logSet,
+    retrySet,
+    updateSet,
     deleteSet,
     refetch: fetchAll,
   };

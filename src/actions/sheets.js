@@ -1,5 +1,38 @@
 import { normalizeReps } from "@/lib/reps";
 
+/**
+ * Every mutating call goes through here.
+ *
+ * These used to `return res.json()` with no status check, so a 500 — or a 401
+ * from an expired session — resolved as if it had succeeded. The caller's
+ * catch never ran and the UI showed writes that never reached the sheet.
+ */
+async function mutate(url, body) {
+  let res;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new Error("Nggak ada koneksi. Data belum tersimpan.");
+  }
+
+  if (res.status === 401) {
+    throw new Error("Sesi lo habis. Login ulang buat nyimpen.");
+  }
+  if (!res.ok) {
+    throw new Error(`Server nolak (${res.status}). Data belum tersimpan.`);
+  }
+
+  const data = await res.json().catch(() => null);
+  if (!data || data.error) {
+    throw new Error(data?.error || "Respons server nggak valid.");
+  }
+  return data;
+}
+
 function deserializeBodyMetric(row) {
   return {
     ...row,
@@ -44,20 +77,10 @@ export const bodyApi = {
     return rows.map(deserializeBodyMetric);
   },
   async add(payload) {
-    const res = await fetch("/api/sheets/body", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "add", payload }),
-    });
-    return res.json();
+    return mutate("/api/sheets/body", { action: "add", payload });
   },
   async delete(id) {
-    const res = await fetch("/api/sheets/body", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "delete", id }),
-    });
-    return res.json();
+    return mutate("/api/sheets/body", { action: "delete", id });
   },
 };
 
@@ -76,12 +99,7 @@ export const exercisesApi = {
     return res.json();
   },
   async add(payload) {
-    const res = await fetch("/api/sheets/exercises", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "add", payload }),
-    });
-    return res.json();
+    return mutate("/api/sheets/exercises", { action: "add", payload });
   },
 };
 
@@ -93,20 +111,13 @@ export const workoutApi = {
     return rows.map(deserializeWorkoutLog);
   },
   async add(payload) {
-    const res = await fetch("/api/sheets/workout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "add", payload }),
-    });
-    return res.json();
+    return mutate("/api/sheets/workout", { action: "add", payload });
+  },
+  async update(id, payload) {
+    return mutate("/api/sheets/workout", { action: "update", id, payload });
   },
   async delete(id) {
-    const res = await fetch("/api/sheets/workout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "delete", id }),
-    });
-    return res.json();
+    return mutate("/api/sheets/workout", { action: "delete", id });
   },
 };
 
@@ -118,27 +129,12 @@ export const programApi = {
     return rows.map(deserializeProgram);
   },
   async add(payload) {
-    const res = await fetch("/api/sheets/program", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "add", payload }),
-    });
-    return res.json();
+    return mutate("/api/sheets/program", { action: "add", payload });
   },
   async update(id, payload) {
-    const res = await fetch("/api/sheets/program", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "update", id, payload }),
-    });
-    return res.json();
+    return mutate("/api/sheets/program", { action: "update", id, payload });
   },
   async delete(id) {
-    const res = await fetch("/api/sheets/program", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "delete", id }),
-    });
-    return res.json();
+    return mutate("/api/sheets/program", { action: "delete", id });
   },
 };

@@ -38,9 +38,12 @@ export default function SetInputModal({
   lastPerformance,
   personalBest,
   targetReps,
+  prefillRpe,
+  mode = "create",
   onConfirm,
   onClose,
 }) {
+  const isEdit = mode === "edit";
   const [weight, setWeight] = useState(prefillWeight != null ? String(prefillWeight) : "");
   const [reps, setReps] = useState(() => {
     if (prefillReps != null) return String(prefillReps);
@@ -49,7 +52,7 @@ export default function SetInputModal({
     const fromTarget = leadingNumber(targetReps);
     return fromTarget != null ? String(fromTarget) : "";
   });
-  const [rpe, setRpe] = useState(7);
+  const [rpe, setRpe] = useState(prefillRpe ?? 7);
 
   // Blank means bodyweight, not "unset" — plenty of exercises carry no load.
   const w = weight.trim() === "" ? 0 : parseFloat(weight);
@@ -58,9 +61,14 @@ export default function SetInputModal({
   const isBodyweight = Number.isFinite(w) && w === 0;
   const valid = Number.isFinite(w) && w >= 0 && Number.isFinite(r) && r > 0;
 
-  // Surface a PR the moment the entered weight beats the previous best, so the
-  // feedback lands while the lift is still fresh. Load-free sets have no PR.
-  const isPR = valid && w > 0 && personalBest && w > personalBest.weight;
+  // Loaded lifts beat a weight record; bodyweight work beats a reps record.
+  // Editing an existing set never claims a PR — the best already includes it.
+  const isPR =
+    valid && !isEdit && personalBest
+      ? personalBest.metric === "weight"
+        ? w > 0 && w > personalBest.value
+        : isBodyweight && r > personalBest.value
+      : false;
 
   // Compare against the matching set from last session, not just the last set,
   // so "set 3 vs set 3" is a like-for-like read.
@@ -73,7 +81,7 @@ export default function SetInputModal({
 
   return (
     <Sheet
-      subtitle={`Set ${setNumber}`}
+      subtitle={isEdit ? `Ubah set ${setNumber}` : `Set ${setNumber}`}
       title={exerciseName}
       onClose={onClose}
       footer={
@@ -84,7 +92,7 @@ export default function SetInputModal({
             className="btn btn-primary btn-lg w-full"
           >
             {isPR && <FiAward size={18} />}
-            {isPR ? "Catat PR Baru" : "Catat Set"}
+            {isEdit ? "Simpan Perubahan" : isPR ? "Catat PR Baru" : "Catat Set"}
           </button>
           {/* Never leave a disabled button unexplained */}
           {!valid && (
@@ -141,8 +149,8 @@ export default function SetInputModal({
           hint={
             isBodyweight
               ? "Bodyweight — tanpa beban"
-              : personalBest
-                ? `PR ${personalBest.weight} kg`
+              : personalBest?.metric === "weight"
+                ? `PR ${personalBest.value} kg`
                 : null
           }
         />
@@ -153,7 +161,13 @@ export default function SetInputModal({
           onChange={setReps}
           step={1}
           min={0}
-          hint={targetReps ? `target ${targetReps}` : null}
+          hint={
+            personalBest?.metric === "reps"
+              ? `PR ${personalBest.value} reps`
+              : targetReps
+                ? `target ${targetReps}`
+                : null
+          }
         />
 
         <div>
@@ -183,7 +197,8 @@ export default function SetInputModal({
         {isPR && (
           <div className="flex items-center gap-2 text-sm font-medium text-emerald-700 bg-emerald-50 rounded-xl px-3.5 py-3">
             <FiAward size={16} className="shrink-0" />
-            Rekor baru — sebelumnya {personalBest.weight} kg
+            Rekor baru — sebelumnya {personalBest.value}
+            {personalBest.metric === "weight" ? " kg" : " reps"}
           </div>
         )}
       </div>
