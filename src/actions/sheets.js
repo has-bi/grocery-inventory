@@ -1,5 +1,27 @@
 import { normalizeReps } from "@/lib/reps";
 
+/** Every read goes through here so the route's diagnosis reaches the screen. */
+async function read(url, what) {
+  let res;
+  try {
+    res = await fetch(url);
+  } catch {
+    throw new Error("Nggak ada koneksi.");
+  }
+
+  if (res.status === 401) throw new Error("Sesi lo habis. Login ulang.");
+
+  const data = await res.json().catch(() => null);
+
+  // The route explains *why* it failed; passing that through beats a generic
+  // "Failed to fetch", which sent us looking in the wrong place entirely.
+  if (!res.ok || (data && data.error)) {
+    throw new Error(data?.error || `Gagal ambil ${what} (${res.status}).`);
+  }
+  if (!Array.isArray(data)) throw new Error(`Format ${what} nggak sesuai.`);
+  return data;
+}
+
 /**
  * Every mutating call goes through here.
  *
@@ -71,10 +93,7 @@ function deserializeProgram(row) {
 
 export const bodyApi = {
   async getAll() {
-    const res = await fetch("/api/sheets/body");
-    if (!res.ok) throw new Error("Failed to fetch body metrics");
-    const rows = await res.json();
-    return rows.map(deserializeBodyMetric);
+    return (await read("/api/sheets/body", "body metrics")).map(deserializeBodyMetric);
   },
   async add(payload) {
     return mutate("/api/sheets/body", { action: "add", payload });
@@ -86,17 +105,13 @@ export const bodyApi = {
 
 export const scheduleApi = {
   async getAll() {
-    const res = await fetch("/api/sheets/schedule");
-    if (!res.ok) throw new Error("Failed to fetch schedule");
-    return res.json();
+    return read("/api/sheets/schedule", "jadwal");
   },
 };
 
 export const exercisesApi = {
   async getAll() {
-    const res = await fetch("/api/sheets/exercises");
-    if (!res.ok) throw new Error("Failed to fetch exercises");
-    return res.json();
+    return read("/api/sheets/exercises", "daftar gerakan");
   },
   async add(payload) {
     return mutate("/api/sheets/exercises", { action: "add", payload });
@@ -105,10 +120,7 @@ export const exercisesApi = {
 
 export const workoutApi = {
   async getAll() {
-    const res = await fetch("/api/sheets/workout");
-    if (!res.ok) throw new Error("Failed to fetch workout logs");
-    const rows = await res.json();
-    return rows.map(deserializeWorkoutLog);
+    return (await read("/api/sheets/workout", "log latihan")).map(deserializeWorkoutLog);
   },
   async add(payload) {
     return mutate("/api/sheets/workout", { action: "add", payload });
@@ -123,10 +135,7 @@ export const workoutApi = {
 
 export const programApi = {
   async getAll() {
-    const res = await fetch("/api/sheets/program");
-    if (!res.ok) throw new Error("Failed to fetch programs");
-    const rows = await res.json();
-    return rows.map(deserializeProgram);
+    return (await read("/api/sheets/program", "program")).map(deserializeProgram);
   },
   async add(payload) {
     return mutate("/api/sheets/program", { action: "add", payload });
