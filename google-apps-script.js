@@ -24,9 +24,9 @@ function setupSheets() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
   const SCHEMAS = {
-    BodyMetrics: ["_id", "date", "weight", "waist", "height", "bmi"],
+    BodyMetrics: ["_id", "client_id", "date", "weight", "waist", "height", "bmi"],
     Exercises:   ["_id", "name", "muscle_group", "equipment", "video_url", "cues"],
-    WorkoutLogs: ["_id", "date", "session", "exercise_name", "set_number", "weight", "reps", "rpe", "notes"],
+    WorkoutLogs: ["_id", "client_id", "date", "session", "exercise_name", "set_number", "weight", "reps", "rpe", "notes"],
     Programs:    ["_id", "session", "exercise_name", "target_sets", "target_reps", "rest_seconds", "target_weight", "sort_order"],
     Schedule:    ["_id", "day_of_week", "session", "notes"],
   };
@@ -255,6 +255,50 @@ function seedPrograms() {
 }
 
 /**
+ * Removes duplicate WorkoutLogs rows left behind before writes became
+ * idempotent. Safe to run repeatedly.
+ *
+ * A duplicate is the same date + session + exercise + set_number + weight +
+ * reps as an earlier row. The first occurrence is kept; later copies go. Rows
+ * that merely repeat a set number with different numbers are left alone, since
+ * those are real sets.
+ */
+function dedupeWorkoutLogs() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName("WorkoutLogs");
+  const data = sheet.getDataRange().getValues();
+  if (data.length <= 2) {
+    Logger.log("Nothing to dedupe.");
+    return;
+  }
+
+  const headers = data[0];
+  const col = (name) => headers.indexOf(name);
+  const keyOf = (row) =>
+    ["date", "session", "exercise_name", "set_number", "weight", "reps"]
+      .map((h) => {
+        const i = col(h);
+        const v = i === -1 ? "" : row[i];
+        return v instanceof Date ? Utilities.formatDate(v, Session.getScriptTimeZone(), "yyyy-MM-dd") : String(v);
+      })
+      .join("|");
+
+  const seen = {};
+  const doomed = [];
+  for (let i = 1; i < data.length; i++) {
+    const key = keyOf(data[i]);
+    if (seen[key]) doomed.push(i + 1);
+    else seen[key] = true;
+  }
+
+  // Delete bottom-up so earlier row numbers stay valid as rows disappear.
+  for (let i = doomed.length - 1; i >= 0; i--) sheet.deleteRow(doomed[i]);
+
+  invalidateBundleCache();
+  Logger.log("Removed " + doomed.length + " duplicate rows.");
+}
+
+/**
  * Repairs the Programs sheet. Safe to run repeatedly.
  *
  * Google Sheets coerces a rep range like "10-12" into the date 12 October and
@@ -465,16 +509,59 @@ function readSheet(sheet) {
   });
 }
 
+/**
+ * Appends a row, at most once per client_id.
+ *
+ * Aborting the HTTP request does not abort this script: when the app gave up
+ * waiting at 8 seconds, the append had often already committed, so the retry
+ * wrote the same set a second time. One session ended up with eight copies of
+ * the same stretch.
+ *
+ * The client now sends a client_id that stays fixed across retries, and a
+ * request whose id is already present returns the original row instead of
+ * appending another. The lock closes the remaining window where two requests
+ * check before either writes.
+ */
 function addRow(sheetName, payload) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(sheetName);
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+  } catch (err) {
+    return { success: false, error: "Sheet lagi dipakai proses lain. Coba lagi." };
+  }
 
-  const id = Utilities.getUuid();
-  const row = headers.map((h) => (h === "_id" ? id : payload[h] !== undefined ? payload[h] : ""));
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet) return { success: false, error: "Sheet " + sheetName + " nggak ketemu." };
 
-  sheet.appendRow(row);
-  return { success: true, _id: id };
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const clientId = payload.client_id;
+    const clientCol = headers.indexOf("client_id");
+
+    if (clientId && clientCol !== -1 && sheet.getLastRow() > 1) {
+      const idCol = headers.indexOf("_id");
+      const existing = sheet
+        .getRange(2, 1, sheet.getLastRow() - 1, headers.length)
+        .getValues();
+
+      for (let i = 0; i < existing.length; i++) {
+        if (String(existing[i][clientCol]) === String(clientId)) {
+          // Already written by an earlier attempt. Report the original row so
+          // the app treats the retry as the success it actually was.
+          return { success: true, _id: existing[i][idCol], duplicate: true };
+        }
+      }
+    }
+
+    const id = Utilities.getUuid();
+    const row = headers.map((h) => (h === "_id" ? id : payload[h] !== undefined ? payload[h] : ""));
+    sheet.appendRow(row);
+
+    return { success: true, _id: id };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function updateRow(sheetName, id, payload) {
