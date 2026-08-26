@@ -37,6 +37,11 @@ export function useBodyMetrics() {
   const addMetric = async ({ date, weight, waist, height }) => {
     const bmi = calcBMI(parseFloat(weight), parseFloat(height));
     const payload = {
+      // Same idempotency guard as workout sets: a retry after a timeout must
+      // not create a second measurement.
+      client_id:
+        globalThis.crypto?.randomUUID?.() ??
+        `c_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
       date: date || getLocalToday(),
       weight: String(weight),
       waist: String(waist),

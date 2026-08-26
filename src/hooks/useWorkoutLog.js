@@ -304,7 +304,15 @@ export function useWorkoutLog() {
         notes,
       };
 
-      const tempId = `temp_${Date.now()}_${Math.round(weight * 100)}_${reps}`;
+      // Fixed for the life of this set, retries included. The server refuses a
+      // second insert with the same id, so a write that landed before the app
+      // gave up waiting cannot be duplicated by pressing retry.
+      const clientId =
+        globalThis.crypto?.randomUUID?.() ??
+        `c_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+      payload.client_id = clientId;
+
+      const tempId = `temp_${clientId}`;
       setLogs((prev) => [
         ...prev,
         { _id: tempId, ...payload, weight, reps, rpe, set_number: setNumber, _payload: payload, _status: "saving" },
