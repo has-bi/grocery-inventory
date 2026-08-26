@@ -363,13 +363,65 @@ function migrateHealthToBodyMetrics() {
   Logger.log("migrateHealthToBodyMetrics: " + count + " entries added.");
 }
 
+/** Sheets the app reads on startup. */
+const BUNDLE_SHEETS = ["BodyMetrics", "Exercises", "WorkoutLogs", "Programs", "Schedule"];
+
+const CACHE_KEY = "bundle_v1";
+const CACHE_TTL_SECONDS = 300;
+
 function doGet(e) {
   try {
     const { action, sheet: sheetName } = e.parameter;
+    if (action === "getBundle") return jsonResponse(getBundle());
     if (action === "getAll") return jsonResponse(getAllRows(sheetName));
     return jsonResponse({ error: "Unknown action" });
   } catch (err) {
     return jsonResponse({ error: err.message });
+  }
+}
+
+/**
+ * Every sheet the app needs, in one execution.
+ *
+ * The app used to request five sheets in parallel, which meant five
+ * simultaneous executions of this script — each opening the spreadsheet
+ * separately. Apps Script limits concurrent executions, so the requests
+ * contended and timed out together roughly half the time. One call, one
+ * openById, no contention.
+ */
+function getBundle() {
+  const cache = CacheService.getScriptCache();
+
+  const cached = cache.get(CACHE_KEY);
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch (err) {
+      // Corrupt entry: fall through and rebuild rather than fail the request.
+    }
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const out = {};
+  BUNDLE_SHEETS.forEach((name) => {
+    out[name] = readSheet(ss.getSheetByName(name));
+  });
+
+  try {
+    cache.put(CACHE_KEY, JSON.stringify(out), CACHE_TTL_SECONDS);
+  } catch (err) {
+    // CacheService rejects values over 100KB. Serving uncached is still correct.
+  }
+
+  return out;
+}
+
+/** Dropped whenever a write lands, so the app never reads back stale rows. */
+function invalidateBundleCache() {
+  try {
+    CacheService.getScriptCache().remove(CACHE_KEY);
+  } catch (err) {
+    // Cache eviction is best effort; the TTL bounds any staleness anyway.
   }
 }
 
@@ -379,9 +431,9 @@ function doPost(e) {
     const { action, sheet: sheetName, payload, id } = data;
 
     switch (action) {
-      case "add":    return jsonResponse(addRow(sheetName, payload));
-      case "update": return jsonResponse(updateRow(sheetName, id, payload));
-      case "delete": return jsonResponse(deleteRow(sheetName, id));
+      case "add":    return jsonResponse(withCacheReset(addRow(sheetName, payload)));
+      case "update": return jsonResponse(withCacheReset(updateRow(sheetName, id, payload)));
+      case "delete": return jsonResponse(withCacheReset(deleteRow(sheetName, id)));
       default:       return jsonResponse({ error: "Unknown action" });
     }
   } catch (err) {
@@ -391,7 +443,11 @@ function doPost(e) {
 
 function getAllRows(sheetName) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(sheetName);
+  return readSheet(ss.getSheetByName(sheetName));
+}
+
+/** Rows of one already-resolved sheet, as objects keyed by header. */
+function readSheet(sheet) {
   if (!sheet) return [];
 
   const data = sheet.getDataRange().getValues();
@@ -457,6 +513,12 @@ function deleteRow(sheetName, id) {
   }
 
   return { success: false, error: "Row not found" };
+}
+
+/** Passes a write result through after clearing the cached bundle. */
+function withCacheReset(result) {
+  invalidateBundleCache();
+  return result;
 }
 
 function jsonResponse(data) {

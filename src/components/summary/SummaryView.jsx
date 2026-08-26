@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { workoutApi, bodyApi } from "@/actions/sheets";
+import { fetchBundle, deserializeBundle } from "@/actions/sheets";
 import LineChart from "@/components/ui/LineChart";
 import { FiAward, FiAlertCircle } from "react-icons/fi";
 
@@ -20,10 +20,11 @@ export default function SummaryView() {
   const [selected, setSelected] = useState("");
 
   useEffect(() => {
-    Promise.all([workoutApi.getAll(), bodyApi.getAll()])
-      .then(([l, b]) => {
-        setLogs(l);
-        setBody([...b].sort((a, b2) => a.date.localeCompare(b2.date)));
+    fetchBundle()
+      .then((raw) => {
+        const { workoutLogs, bodyMetrics } = deserializeBundle(raw);
+        setLogs(workoutLogs);
+        setBody([...bodyMetrics].sort((a, b2) => a.date.localeCompare(b2.date)));
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));

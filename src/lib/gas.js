@@ -83,6 +83,48 @@ async function call(url, init) {
   }
 }
 
+const BUNDLE_SHEETS = ["BodyMetrics", "Exercises", "WorkoutLogs", "Programs", "Schedule"];
+
+/**
+ * All sheets in one execution.
+ *
+ * Apps Script cold starts and momentary contention make a single attempt
+ * flaky, so one transient failure is retried once. Config and auth problems
+ * are permanent, and retrying those only doubles the wait.
+ */
+export async function gasBundle() {
+  let lastError;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const data = await call(`${requireUrl()}?action=getBundle`);
+
+      if (data?.error) {
+        if (/unknown action/i.test(data.error)) {
+          throw new GasError(
+            "Apps Script-nya belum punya getBundle. Paste ulang google-apps-script.js lalu deploy lagi.",
+            "unsupported"
+          );
+        }
+        throw new GasError(data.error, "http");
+      }
+
+      // A response missing every known sheet is not a usable bundle.
+      if (!data || !BUNDLE_SHEETS.some((s) => Array.isArray(data[s]))) {
+        throw new GasError("Bundle dari Apps Script formatnya nggak sesuai.", "parse");
+      }
+      return data;
+    } catch (err) {
+      lastError = err;
+      const permanent =
+        err instanceof GasError && ["config", "auth", "unsupported"].includes(err.kind);
+      if (permanent || attempt === 1) throw err;
+    }
+  }
+
+  throw lastError;
+}
+
 export function gasGet(sheet) {
   return call(`${requireUrl()}?action=getAll&sheet=${encodeURIComponent(sheet)}`);
 }
