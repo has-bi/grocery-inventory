@@ -91,6 +91,52 @@ function deserializeProgram(row) {
   };
 }
 
+/**
+ * One request for every sheet.
+ *
+ * Falls back to the per-sheet endpoints when Apps Script has not been updated
+ * with getBundle yet, so an out-of-date deployment keeps working rather than
+ * breaking the whole app.
+ */
+export async function fetchBundle() {
+  let res;
+  try {
+    res = await fetch("/api/sheets/bundle");
+  } catch {
+    throw new Error("Nggak ada koneksi.");
+  }
+
+  if (res.status === 401) throw new Error("Sesi lo habis. Login ulang.");
+
+  if (res.status === 501) {
+    const [BodyMetrics, Exercises, WorkoutLogs, Programs, Schedule] = await Promise.all([
+      read("/api/sheets/body", "body metrics"),
+      read("/api/sheets/exercises", "daftar gerakan"),
+      read("/api/sheets/workout", "log latihan"),
+      read("/api/sheets/program", "program"),
+      read("/api/sheets/schedule", "jadwal").catch(() => []),
+    ]);
+    return { BodyMetrics, Exercises, WorkoutLogs, Programs, Schedule };
+  }
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok || data?.error) {
+    throw new Error(data?.error || `Gagal ambil data (${res.status}).`);
+  }
+  return data;
+}
+
+/** Shapes the raw bundle into what the hooks expect. */
+export function deserializeBundle(b) {
+  return {
+    bodyMetrics: (b.BodyMetrics || []).map(deserializeBodyMetric),
+    exercises: b.Exercises || [],
+    workoutLogs: (b.WorkoutLogs || []).map(deserializeWorkoutLog),
+    programs: (b.Programs || []).map(deserializeProgram),
+    schedule: b.Schedule || [],
+  };
+}
+
 export const bodyApi = {
   async getAll() {
     return (await read("/api/sheets/body", "body metrics")).map(deserializeBodyMetric);

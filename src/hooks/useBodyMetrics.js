@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { bodyApi } from "@/actions/sheets";
+import { bodyApi, fetchBundle, deserializeBundle } from "@/actions/sheets";
 
 function calcBMI(weight, height) {
   if (!weight || !height) return 0;
@@ -22,7 +22,7 @@ export function useBodyMetrics() {
   const fetchMetrics = async () => {
     setLoading(true);
     try {
-      const data = await bodyApi.getAll();
+      const data = deserializeBundle(await fetchBundle()).bodyMetrics;
       setMetrics(data.sort((a, b) => b.date.localeCompare(a.date)));
       setError(null);
     } catch (err) {

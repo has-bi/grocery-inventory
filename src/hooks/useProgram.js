@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { programApi, exercisesApi, scheduleApi } from "@/actions/sheets";
+import { fetchBundle, deserializeBundle } from "@/actions/sheets";
 
 /** Fallback only — real session names come from the Sheet. */
 export const SESSIONS = ["Upper A", "Lower A", "Upper B", "Lower B", "Kondisioning"];
@@ -19,14 +19,10 @@ export function useProgram() {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [progData, exData, schedData] = await Promise.all([
-        programApi.getAll(),
-        exercisesApi.getAll(),
-        scheduleApi.getAll().catch(() => []),
-      ]);
-      setPrograms(progData);
-      setExercises(exData);
-      setSchedule(Array.isArray(schedData) ? schedData : []);
+      const bundle = deserializeBundle(await fetchBundle());
+      setPrograms(bundle.programs);
+      setExercises(bundle.exercises);
+      setSchedule(bundle.schedule);
       setError(null);
     } catch (err) {
       setError(err.message);

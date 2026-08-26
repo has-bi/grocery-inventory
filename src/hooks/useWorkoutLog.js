@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { workoutApi, exercisesApi, programApi, scheduleApi } from "@/actions/sheets";
+import { workoutApi, fetchBundle, deserializeBundle } from "@/actions/sheets";
 import { buildScheduleMap, computeStreak, recentDays } from "@/lib/streak";
 
 /** Fallback only — the real list comes from whatever sessions the Sheet defines. */
@@ -30,21 +30,16 @@ export function useWorkoutLog() {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      // The Schedule sheet may not exist yet on older deployments; the rest of
-      // the screen still works without it, so its failure is not fatal.
-      const [logsData, exData, progData, schedData] = await Promise.all([
-        workoutApi.getAll(),
-        exercisesApi.getAll(),
-        programApi.getAll(),
-        scheduleApi.getAll().catch(() => []),
-      ]);
-      setLogs(logsData);
-      setExercises(exData);
-      setPrograms(progData);
-      setSchedule(Array.isArray(schedData) ? schedData : []);
+      // One request for every sheet. Fetching them separately meant five
+      // concurrent Apps Script executions, which throttled and failed together.
+      const bundle = deserializeBundle(await fetchBundle());
+      setLogs(bundle.workoutLogs);
+      setExercises(bundle.exercises);
+      setPrograms(bundle.programs);
+      setSchedule(bundle.schedule);
       setError(null);
 
-      const todayLogs = logsData.filter((l) => l.date === today);
+      const todayLogs = bundle.workoutLogs.filter((l) => l.date === today);
       if (todayLogs.length > 0) {
         setActiveSession(todayLogs[todayLogs.length - 1].session);
         setSessionTouched(true);
