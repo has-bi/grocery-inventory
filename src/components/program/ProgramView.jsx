@@ -3,23 +3,49 @@ import { useState, useMemo } from "react";
 import { useProgram } from "@/hooks/useProgram";
 import TutorialSheet from "@/components/workout/TutorialSheet";
 import { DAY_NAMES, buildScheduleMap } from "@/lib/streak";
-import { FiAlertCircle, FiHelpCircle, FiMoon, FiExternalLink } from "react-icons/fi";
+import { FiAlertCircle, FiHelpCircle, FiExternalLink, FiCalendar } from "react-icons/fi";
 
 const SHEET_URL =
   "https://docs.google.com/spreadsheets/d/1KeDvjqh_vf73zVw7xKlCAuAQYuXI-QKzsfOPrVkbYqk/edit";
 
-/** Monday-first for reading order; the array itself is Sunday-indexed. */
+/** Monday-first for reading order; DAY_NAMES itself is Sunday-indexed. */
 const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0].map((i) => DAY_NAMES[i]);
 
 export default function ProgramView() {
   const { loading, error, bySession, exercises, schedule } = useProgram();
   const [tutorialFor, setTutorialFor] = useState(null);
-  const [activeDay, setActiveDay] = useState(() => DAY_NAMES[new Date().getDay()]);
+  const [activeSession, setActiveSession] = useState(null);
 
   const scheduleMap = useMemo(() => buildScheduleMap(schedule), [schedule]);
+  const todayName = DAY_NAMES[new Date().getDay()];
+  const todayPlan = scheduleMap[todayName];
+
   const exerciseByName = useMemo(
     () => Object.fromEntries(exercises.map((e) => [e.name, e])),
     [exercises]
+  );
+
+  /** Every session that exists, whether or not the schedule uses it. */
+  const sessionNames = useMemo(() => {
+    const scheduled = WEEK_ORDER.map((d) => scheduleMap[d]?.session)
+      .filter((s) => s && s.toUpperCase() !== "REST");
+    return [...new Set([...scheduled, ...Object.keys(bySession)])];
+  }, [scheduleMap, bySession]);
+
+  /** Which weekdays a session is pencilled in for — shown as context, not a rule. */
+  const daysForSession = useMemo(() => {
+    const map = {};
+    WEEK_ORDER.forEach((day) => {
+      const s = scheduleMap[day];
+      if (!s || s.isRest) return;
+      (map[s.session] ||= []).push(day);
+    });
+    return map;
+  }, [scheduleMap]);
+
+  const restDays = useMemo(
+    () => WEEK_ORDER.filter((d) => !scheduleMap[d] || scheduleMap[d].isRest),
+    [scheduleMap]
   );
 
   const hasTutorial = (name) => {
@@ -39,17 +65,21 @@ export default function ProgramView() {
     );
   }
 
-  const plan = scheduleMap[activeDay];
-  const isRest = !plan || plan.isRest;
-  const sessionName = plan?.session || "";
-  const list = isRest ? [] : bySession[sessionName] || [];
+  // Open on whatever today suggests, but any session can be browsed freely.
+  const selected =
+    activeSession ??
+    (todayPlan && !todayPlan.isRest ? todayPlan.session : sessionNames[0]) ??
+    null;
+
+  const list = selected ? bySession[selected] || [] : [];
   const totalSets = list.reduce((n, p) => n + (p.target_sets || 0), 0);
+  const scheduledOn = selected ? daysForSession[selected] : null;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <header>
         <h1 className="page-title">Program</h1>
-        <p className="page-sub">Diatur dari Google Sheet, dibaca di sini</p>
+        <p className="page-sub">Semua menu latihan. Bebas mau lihat yang mana.</p>
       </header>
 
       {error && (
@@ -59,42 +89,42 @@ export default function ProgramView() {
         </div>
       )}
 
-      {/* Day picker — the schedule is the source of truth for what runs when */}
+      {/* Browse by session, not by day — the day is a hint, not a gate */}
       <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {WEEK_ORDER.map((day) => {
-          const p = scheduleMap[day];
-          const rest = !p || p.isRest;
-          const active = activeDay === day;
-          return (
-            <button
-              key={day}
-              onClick={() => setActiveDay(day)}
-              aria-pressed={active}
-              className={`btn btn-md shrink-0 whitespace-nowrap ${
-                active ? "btn-primary" : "btn-secondary"
-              } ${rest && !active ? "text-ink-faint" : ""}`}
-            >
-              {day}
-            </button>
-          );
-        })}
+        {sessionNames.map((name) => (
+          <button
+            key={name}
+            onClick={() => setActiveSession(name)}
+            aria-pressed={selected === name}
+            className={`btn btn-md shrink-0 whitespace-nowrap ${
+              selected === name ? "btn-primary" : "btn-secondary"
+            }`}
+          >
+            {name}
+          </button>
+        ))}
       </div>
 
-      {isRest ? (
-        <div className="card p-8 text-center">
-          <FiMoon size={22} className="mx-auto text-ink-faint mb-3" />
-          <p className="text-sm font-medium text-ink mb-1">Jatah rebahan</p>
-          <p className="text-sm text-ink-muted">
-            {plan?.notes || "Otot tumbuhnya pas istirahat, bukan pas diangkat. Streak aman."}
-          </p>
-        </div>
-      ) : (
+      {selected && (
         <>
           <div className="flex items-baseline justify-between gap-3">
-            <p className="text-sm font-semibold text-ink">{sessionName}</p>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ink">{selected}</p>
+              {scheduledOn?.length ? (
+                <p className="text-xs text-ink-muted mt-0.5 flex items-center gap-1.5">
+                  <FiCalendar size={11} className="shrink-0" />
+                  Biasanya {scheduledOn.join(", ")}
+                  {todayPlan?.session === selected && (
+                    <span className="text-emerald-700 font-medium"> · hari ini</span>
+                  )}
+                </p>
+              ) : (
+                <p className="text-xs text-ink-faint mt-0.5">Nggak dijadwalkan — ambil kapan aja</p>
+              )}
+            </div>
             {list.length > 0 && (
-              <p className="text-xs text-ink-muted tabular">
-                {list.length} exercise · {totalSets} set
+              <p className="text-xs text-ink-muted tabular shrink-0">
+                {list.length} gerakan · {totalSets} set
               </p>
             )}
           </div>
@@ -127,17 +157,49 @@ export default function ProgramView() {
 
             {list.length === 0 && (
               <div className="card p-8 text-center">
-                <p className="text-sm font-medium text-ink mb-1">
-                  Sesi {sessionName} masih kosong
-                </p>
+                <p className="text-sm font-medium text-ink mb-1">Sesi {selected} masih kosong</p>
                 <p className="text-sm text-ink-muted">
                   Tambahin barisnya di sheet <span className="font-medium text-ink">Programs</span>{" "}
-                  dengan session <span className="font-medium text-ink">{sessionName}</span>.
+                  dengan session <span className="font-medium text-ink">{selected}</span>.
                 </p>
               </div>
             )}
           </div>
         </>
+      )}
+
+      {/* The weekly plan, presented as a reference rather than a controller */}
+      {restDays.length > 0 && (
+        <div className="card p-4">
+          <p className="section-label mb-2.5">Saran mingguan</p>
+          <div className="space-y-1.5">
+            {WEEK_ORDER.map((day) => {
+              const p = scheduleMap[day];
+              const rest = !p || p.isRest;
+              const isToday = day === todayName;
+              return (
+                <div key={day} className="flex items-center gap-3 text-sm">
+                  <span
+                    className={`w-16 shrink-0 ${isToday ? "font-semibold text-ink" : "text-ink-muted"}`}
+                  >
+                    {day}
+                  </span>
+                  <span className={rest ? "text-ink-faint" : "text-ink"}>
+                    {rest ? "istirahat" : p.session}
+                  </span>
+                  {isToday && (
+                    <span className="text-xs text-emerald-700 font-medium ml-auto shrink-0">
+                      hari ini
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-xs text-ink-faint mt-3 leading-relaxed">
+            Ini cuma saran. Mau angkat apa pun di hari mana pun, streak tetap jalan.
+          </p>
+        </div>
       )}
 
       <a
@@ -149,12 +211,6 @@ export default function ProgramView() {
         Atur di Google Sheet
         <FiExternalLink size={14} className="text-ink-faint" />
       </a>
-
-      <p className="text-xs text-ink-faint text-center leading-relaxed">
-        <span className="font-medium">Schedule</span> ngatur hari &amp; rest day ·{" "}
-        <span className="font-medium">Programs</span> ngatur exercise ·{" "}
-        <span className="font-medium">Exercises</span> ngatur tutorial
-      </p>
 
       {tutorialFor && (
         <TutorialSheet

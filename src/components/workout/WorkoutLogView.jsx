@@ -307,12 +307,25 @@ export default function WorkoutLogView() {
 
       {/* Session selector — scrolls rather than wrapping, keeping the header a fixed height */}
       <div>
-        <div className="flex items-baseline justify-between mb-2">
+        <div className="flex items-baseline justify-between gap-3 mb-2">
           <p className="section-label">Mau hajar yang mana</p>
+          {/* The schedule advises; tapping is the only thing that decides */}
           {suggestedSession && activeSession !== suggestedSession && (
-            <span className="text-xs text-ink-faint">Jadwalnya sih {suggestedSession}</span>
+            <button
+              onClick={() => setActiveSession(suggestedSession)}
+              className="text-xs text-ink-muted hover:text-ink underline underline-offset-2 shrink-0"
+            >
+              Saran: {suggestedSession}
+            </button>
           )}
         </div>
+
+        {streak.todayPlan?.isRest && (
+          <p className="text-xs text-ink-muted mb-2">
+            Jadwalnya istirahat hari ini — tapi kalau lagi pengen angkat, tinggal pilih. Streak
+            tetap aman entah lo latihan atau nggak.
+          </p>
+        )}
         <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {sessions.map((s) => (
             <button

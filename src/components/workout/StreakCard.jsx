@@ -91,7 +91,7 @@ export default function StreakCard({ streak, weekStrip }) {
 
       {pendingToday && (
         <p className="text-xs text-ink-muted mt-3.5 text-center">
-          Streak-mu nunggu <span className="font-medium text-ink">{todayPlan.session}</span> dikelarin.
+          Saran hari ini: <span className="font-medium text-ink">{todayPlan.session}</span>. Mau ganti yang lain juga boleh — yang penting kecatat.
         </p>
       )}
     </div>
